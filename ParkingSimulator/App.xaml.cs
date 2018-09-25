@@ -14,6 +14,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Infrastructure;
+using Models;
 
 namespace ParkingSimulator
 {
@@ -71,6 +73,13 @@ namespace ParkingSimulator
                 // Обеспечение активности текущего окна
                 Window.Current.Activate();
             }
+
+            Init();
+        }
+
+        void Init()
+        {
+            IoC.AddModel<ParkingSimulationModel>();
         }
 
         /// <summary>
