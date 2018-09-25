@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Infrastructure;
 
-namespace ViewModels
+namespace Domain
 {
-    public class ParkingSimulationViewModel : ViewModelBase
+    public class Car
     {
     }
 }
