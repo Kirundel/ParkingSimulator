@@ -16,6 +16,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Infrastructure;
 using Models;
+using Views;
 
 namespace ParkingSimulator
 {
@@ -43,6 +44,8 @@ namespace ParkingSimulator
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
+            Init();
+
             // Не повторяйте инициализацию приложения, если в окне уже имеется содержимое,
             // только обеспечьте активность окна
             if (rootFrame == null)
@@ -68,13 +71,11 @@ namespace ParkingSimulator
                     // Если стек навигации не восстанавливается для перехода к первой странице,
                     // настройка новой страницы путем передачи необходимой информации в качестве параметра
                     // параметр
-                    rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                    rootFrame.Navigate(typeof(ParkingSimulationView), e.Arguments);
                 }
                 // Обеспечение активности текущего окна
                 Window.Current.Activate();
             }
-
-            Init();
         }
 
         void Init()

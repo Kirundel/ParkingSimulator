@@ -7,7 +7,7 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="83730f5c-3e34-4926-b434-736ae7efbf43"
+    Name="ParkingSimulator"
     Publisher="CN=kiril"
     Version="1.0.0.0" />
 

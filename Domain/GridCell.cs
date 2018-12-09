@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Infrastructure;
+using System.Windows;
 
 namespace Domain
 {
-    class GridCell
+    public class GridCell
     {
+        public GridCell(Pair<int> coordinates, CellType cellType)
+        {
+            Coordinates = coordinates;
+        }
+
+        public Pair<int> Coordinates { get; }
+        public CellType CellType { get; }
     }
 }
