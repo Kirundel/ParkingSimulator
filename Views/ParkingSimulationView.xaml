@@ -16,8 +16,38 @@
         <converters:BoolToBrushConverter
             x:Name="BoolToBrushConverter"
             FalseBrush="White"
-            TrueBrush="Gray" />
-        <Style x:Name="ButtonConstructor" TargetType="Button">
+            TrueBrush="LightGray" />
+        <Style x:Name="DefaultButton" TargetType="Button">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="IsTapEnabled" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
+                            <ContentPresenter
+                                x:Name="ContentPresenter"
+                                Padding="{TemplateBinding Padding}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                AutomationProperties.AccessibilityView="Raw"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                ContentTransitions="{TemplateBinding ContentTransitions}" />
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates" />
+                            </VisualStateManager.VisualStateGroups>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style
+            x:Name="ButtonConstructor"
+            BasedOn="{StaticResource DefaultButton}"
+            TargetType="Button">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="Height" Value="35" />
             <Setter Property="Background" Value="Transparent" />
@@ -46,18 +76,33 @@
             Grid.Row="0"
             Grid.Column="0"
             HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch"
             Background="White"
             IsItemClickEnabled="False"
+            IsTapEnabled="False"
             ItemsSource="{Binding Tabs}">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    <Setter Property="VerticalAlignment" Value="Stretch" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Button
-                        Width="35"
+                        Margin="-12,0"
+                        Padding="15,0"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Center"
                         Background="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}}"
                         Command="{Binding ClickCommand}"
-                        Content="{Binding Text}" />
+                        Content="{Binding Text}"
+                        Style="{StaticResource DefaultButton}" />
                 </DataTemplate>
             </ListView.ItemTemplate>
             <ListView.ItemsPanel>
@@ -65,6 +110,7 @@
                     <ItemsStackPanel Orientation="Horizontal" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
+            <VisualStateManager.VisualStateGroups />
         </ListView>
         <canvas:CanvasControl
             x:Name="mainDisplay"
@@ -74,61 +120,59 @@
             VerticalAlignment="Stretch"
             Draw="CanvasControl_Draw"
             PointerPressed="CanvasControl_PointerPressed" />
-        <FlipView Grid.Row="1" Grid.Column="1">
-            <Grid x:Name="ConstructorMenu">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" HorizontalAlignment="Stretch">
-                    <Grid>
-                        <Border Style="{StaticResource ButtonBorderConstructor}" Visibility="{Binding AsphaltSelected, Converter={StaticResource BoolToVisiblityConverter}}" />
-                        <Button
-                            Command="{Binding AsphaltCommand}"
-                            Content="Асфальт"
-                            Style="{StaticResource ButtonConstructor}" />
-                    </Grid>
-                    <Grid>
-                        <Border Style="{StaticResource ButtonBorderConstructor}" Visibility="{Binding ParkingSpaceSelected, Converter={StaticResource BoolToVisiblityConverter}}" />
-                        <Button
-                            Grid.Column="1"
-                            Command="{Binding ParkingSpaceCommand}"
-                            Content="Парковочное место"
-                            Style="{StaticResource ButtonConstructor}" />
-                    </Grid>
-                    <Grid>
-                        <Border Style="{StaticResource ButtonBorderConstructor}" Visibility="{Binding EntrySelected, Converter={StaticResource BoolToVisiblityConverter}}" />
-                        <Button
-                            Grid.Column="2"
-                            Command="{Binding EntryCommand}"
-                            Content="Въезд"
-                            Style="{StaticResource ButtonConstructor}" />
-                    </Grid>
-                    <Grid>
-                        <Border Style="{StaticResource ButtonBorderConstructor}" Visibility="{Binding ExitSelected, Converter={StaticResource BoolToVisiblityConverter}}" />
-                        <Button
-                            Grid.Column="3"
-                            Command="{Binding ExitCommand}"
-                            Content="Выезд"
-                            Style="{StaticResource ButtonConstructor}" />
-                    </Grid>
-                </StackPanel>
-            </Grid>
-            <Grid x:Name="SimulationMenu">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" HorizontalAlignment="Stretch">
-                    <Button
-                        Grid.Column="3"
-                        Command="{Binding ExitCommand}"
-                        Content="Начать симуляцию"
-                        Style="{StaticResource ButtonConstructor}" />
-                </StackPanel>
-            </Grid>
-        </FlipView>
+        <Grid
+            x:Name="ConstructorMenu"
+            Grid.Row="1"
+            Grid.Column="1"
+            Visibility="{Binding IsConstructorState, Converter={StaticResource BoolToVisiblityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" HorizontalAlignment="Stretch">
+                <Button
+                    Background="{Binding AsphaltSelected, Converter={StaticResource BoolToBrushConverter}}"
+                    Command="{Binding AsphaltCommand}"
+                    Content="Асфальт"
+                    Style="{StaticResource ButtonConstructor}" />
+                <Button
+                    Background="{Binding ParkingSpaceSelected, Converter={StaticResource BoolToBrushConverter}}"
+                    Command="{Binding ParkingSpaceCommand}"
+                    Content="Парковочное место"
+                    Style="{StaticResource ButtonConstructor}" />
+                <Button
+                    Background="{Binding EntrySelected, Converter={StaticResource BoolToBrushConverter}}"
+                    Command="{Binding EntryCommand}"
+                    Content="Въезд"
+                    Style="{StaticResource ButtonConstructor}" />
+                <Button
+                    Background="{Binding ExitSelected, Converter={StaticResource BoolToBrushConverter}}"
+                    Command="{Binding ExitCommand}"
+                    Content="Выезд"
+                    Style="{StaticResource ButtonConstructor}" />
+            </StackPanel>
+        </Grid>
+        <Grid
+            x:Name="SimulationMenu"
+            Grid.Row="1"
+            Grid.Column="1"
+            Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" HorizontalAlignment="Stretch">
+                <Button
+                    Command="{Binding StartSimulationCommand}"
+                    Content="Начать симуляцию"
+                    Style="{StaticResource ButtonConstructor}" />
+                <Button
+                    Command="{Binding StopSimulationCommand}"
+                    Content="Остановить симуляцию"
+                    Style="{StaticResource ButtonConstructor}" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>

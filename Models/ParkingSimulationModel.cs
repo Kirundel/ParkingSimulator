@@ -19,28 +19,15 @@ namespace Models
                 _cells[i, beginM - 1] = CellType.Road;
             long centerN = (beginN + endN) / 2;
             long centerM = (beginM + endM) / 2;
-            long thickness = 30;
-            long radius = 185;
-            //long thickness = 2;
-            //long radius = 6;
-            bool InCircle(long x, long y)
-            {
-                double GetDef(double x1)
-                {
-                    return Sqrt(Abs(x1 * x1 * x1 * x1 * x1));             
-                }
-                var r = GetDef(x - centerM) + GetDef(y - centerM);
-                return r >= GetDef(radius) && r <= GetDef(radius + thickness);
-            }
             for (int x = beginN; x <= endN; x++)
             {
                 for (int y = beginM; y <= endM; y++)
                 {
-                    //_cells[x, y] = (x % 2 == 0 && y % 2 == 0) ? CellType.ParkingSpace : CellType.Parking;
-                    //_cells[x, y] = (x + y) % 4 == 0 ? CellType.ParkingSpace : CellType.Parking;
-                    _cells[x, y] = InCircle(x, y) ? CellType.ParkingSpace : CellType.Parking;
+                    _cells[x, y] = CellType.Parking;
                 }
             }
+            _cells[beginN, beginM] = CellType.Entry;
+            _cells[endN, beginM] = CellType.Exit;
         }
 
         public CellType[,] Cells => _cells;

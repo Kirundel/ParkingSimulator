@@ -7,6 +7,10 @@ using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.Graphics.Canvas;
 using Domain;
 using ViewModels;
+using System;
+using System.Diagnostics;
+using System.Collections.Generic;
+using System.Numerics;
 using static System.Math;
 
 namespace Views
@@ -45,6 +49,8 @@ namespace Views
 
         private void CanvasControl_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
+            Console.WriteLine("CanvasControl drawing began");
+
             var drawingSession = args.DrawingSession;
             drawingSession.Clear(Colors.White);
 
@@ -74,10 +80,26 @@ namespace Views
                         scaley - cellthickness * 2), drawingSession, availableCells[x, y]);
                 }
             }
+
+            if (_vm.IsSimulationState)
+            {
+                var cars = _vm.Cars;
+                foreach (var car in cars)
+                {
+                    int x = car.Coordinates.X, y = car.Coordinates.Y;
+                    var shifts = DirectionTransformation.TransformStepToCoord(car.Step, car.From, car.To);
+                    shifts.x = (shifts.x + 1.0) / 2;
+                    shifts.y = (shifts.y + 1.0) / 2;
+                    drawingSession.FillEllipse(
+                        new Vector2((float)(scalex * (x + shifts.x) + shiftx), (float)(scaley * (y + shifts.y) + shifty)),
+                        5, 5, car.CarColor);
+                }
+            }
         }
 
         private void DrawCell(CellType type, Rect rect, CanvasDrawingSession drawingSession, bool needApplyFilter)
         {
+            needApplyFilter &= _vm.IsConstructorState;
             Color resultColor = Colors.White;
             switch (type)
             {
@@ -104,11 +126,14 @@ namespace Views
 
         private void CanvasControl_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
+            if (!_vm.IsConstructorState)
+                return;
+
             var canv = sender as CanvasControl;
             var width = canv.ActualWidth;
             var height = canv.ActualHeight;
             var cells = _vm.Cells;
-            var availableCelss = _vm.AvailableCells;
+            var availableCells = _vm.AvailableCells;
             var scalex = width / cells.GetLength(0);
             var scaley = height / cells.GetLength(1);
             scalex = Min(scalex, scaley);
@@ -125,9 +150,19 @@ namespace Views
             y1 /= scaley;
             var x2 = (int)x1;
             var y2 = (int)y1;
-            if (InRectangle(cells, x2, y2) && availableCelss[x2, y2])
+            if (InRectangle(cells, x2, y2) && availableCells[x2, y2])
             {
+                if (_vm.SelectedType == CellType.Exit || _vm.SelectedType == CellType.Entry)
+                    for (int i = 0; i < cells.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < cells.GetLength(1); j++)
+                        {
+                            if (cells[i, j] == _vm.SelectedType)
+                                cells[i, j] = CellType.Parking;
+                        }
+                    }
                 cells[x2, y2] = _vm.SelectedType;
+                _vm.RecalculateAvailableCells();
                 canv.Invalidate();
             }
         }

@@ -107,6 +107,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ButtonTabViewModel.cs" />
+    <Compile Include="Generators\ICarGenerator.cs" />
+    <Compile Include="Generators\UniformGenerator.cs" />
     <Compile Include="ParkingSimulationViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\ViewModels.rd.xml" />

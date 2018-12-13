@@ -108,6 +108,8 @@
   <ItemGroup>
     <Compile Include="Car.cs" />
     <Compile Include="CellType.cs" />
+    <Compile Include="Coord.cs" />
+    <Compile Include="Directions.cs" />
     <Compile Include="GridCell.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Domain.rd.xml" />

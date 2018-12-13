@@ -18,7 +18,7 @@ namespace Infrastructure.Converters
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             var tmp = value as bool?;
-            return tmp == true ? Visibility.Visible : Visibility.Collapsed;
+            return tmp == true ? TrueBrush : FalseBrush;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
