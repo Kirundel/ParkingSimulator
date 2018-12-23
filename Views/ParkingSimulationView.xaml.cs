@@ -4,13 +4,16 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.Foundation;
 using Microsoft.Graphics.Canvas.UI.Xaml;
+using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas;
 using Domain;
 using ViewModels;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Numerics;
+using Windows.UI.Xaml.Media.Imaging;
 using static System.Math;
 
 namespace Views
@@ -18,6 +21,11 @@ namespace Views
     public sealed partial class ParkingSimulationView : Page
     {
         private readonly Color Filter = Color.FromArgb(255, 155, 0, 0);
+        private readonly Uri _carImageUri = new Uri("ms-appx:///Views/Assets/car.png");
+
+        private CanvasBitmap _carImage;
+
+        private object _locker = new object();
 
         private ParkingSimulationViewModel _vm;
 
@@ -45,55 +53,94 @@ namespace Views
             _vm = new ParkingSimulationViewModel();
             _vm.InvalidateView += mainDisplay.Invalidate;
             this.DataContext = _vm;
+            mainDisplay.Invalidate();
         }
 
-        private void CanvasControl_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        private async void CanvasControl_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
-            Console.WriteLine("CanvasControl drawing began");
-
-            var drawingSession = args.DrawingSession;
-            drawingSession.Clear(Colors.White);
-
-            var width = sender.ActualWidth;
-            var height = sender.ActualHeight;
-            var cells = _vm.Cells;
-            var availableCells = _vm.AvailableCells;
-            var scalex = width / cells.GetLength(0);
-            var scaley = height / cells.GetLength(1);
-            scalex = Min(scalex, scaley);
-            scaley = scalex;
-
-            var shiftx = (width - scalex * cells.GetLength(0)) / 2;
-            var shifty = (height - scaley * cells.GetLength(1)) / 2;
-
-            var cellthickness = 0.5;
-            //var cellthickness = 0;
-
-            for (int x = 0; x < cells.GetLength(0); x++)
+            if (_vm == null)
+                return;
+            //var cbmp = await CanvasBitmap.LoadAsync(sender.Device, _carImageUri);
+            lock (_locker)
             {
-                for (int y = 0; y < cells.GetLength(1); y++)
+                var drawingSession = args.DrawingSession;
+
+                if (drawingSession == null)
+                    return;
+
+                drawingSession?.Clear(Colors.White);
+
+                var width = sender.ActualWidth;
+                var height = sender.ActualHeight;
+                var cells = _vm.Cells;
+                var availableCells = _vm.AvailableCells;
+                var scalex = width / cells.GetLength(0);
+                var scaley = height / cells.GetLength(1);
+                scalex = Min(scalex, scaley);
+                scaley = scalex;
+
+                var shiftx = (width - scalex * cells.GetLength(0)) / 2;
+                var shifty = (height - scaley * cells.GetLength(1)) / 2;
+
+                var cellthickness = 0.5;
+                //var cellthickness = 0;
+
+                int maxx = cells.GetLength(0);
+                int maxy = cells.GetLength(1);
+
+                for (int x = 0; x < maxx; x++)
                 {
-                    DrawCell(cells[x, y], new Rect(
-                        scalex * x + cellthickness + shiftx, 
-                        scaley * y + cellthickness + shifty, 
-                        scalex - cellthickness * 2, 
-                        scaley - cellthickness * 2), drawingSession, availableCells[x, y]);
+                    for (int y = 0; y < maxy; y++)
+                    {
+                        DrawCell(cells[x, y], new Rect(
+                            scalex * x + cellthickness + shiftx,
+                            scaley * y + cellthickness + shifty,
+                            scalex - cellthickness * 2,
+                            scaley - cellthickness * 2), drawingSession, availableCells[x, y]);
+                    }
+                }
+
+                if (_vm.IsSimulationState)
+                {
+                    var cars = _vm.Cars;
+                    double carWidth = 0.5 * scalex;
+                    double carHeight = 0.5 * scaley;
+                    foreach (var car in cars)
+                    {
+                        int x = car.Coordinates.X, y = car.Coordinates.Y;
+                        var shifts = DirectionTransformation.TransformStepToCoord(car.Step, car.From, car.To);
+                        shifts.x = (shifts.x + 1.0) / 2;
+                        shifts.y = (shifts.y + 1.0) / 2;
+                        var tr1 = new Transform2DEffect
+                        {
+                            Source = _carImage,
+                            TransformMatrix = Matrix3x2.CreateTranslation(new Vector2(-100, -100))
+                        };
+                        var tr2def = new Transform2DEffect
+                        {
+                            Source = tr1,
+                            TransformMatrix = Matrix3x2.CreateRotation((float)PI),
+                        };
+                        var tr2deft = new Transform2DEffect
+                        {
+                            Source = tr2def,
+                            TransformMatrix = Matrix3x2.CreateScale((float)(carWidth / 200))
+                        };
+                        drawingSession.DrawImage(
+                            tr2deft,
+                            new Vector2(
+                                (float)(scalex * (x + shifts.x) + shiftx),
+                                (float)(scaley * (y + shifts.y) + shifty)));
+                        /*drawingSession.FillEllipse(
+                            new Vector2((float)(scalex * (x + shifts.x) + shiftx), (float)(scaley * (y + shifts.y) + shifty)),
+                            7, 7, car.CarColor);*/
+                    }
                 }
             }
 
-            if (_vm.IsSimulationState)
+            if (_carImage == null && _vm.IsSimulationState)
             {
-                var cars = _vm.Cars;
-                foreach (var car in cars)
-                {
-                    int x = car.Coordinates.X, y = car.Coordinates.Y;
-                    var shifts = DirectionTransformation.TransformStepToCoord(car.Step, car.From, car.To);
-                    shifts.x = (shifts.x + 1.0) / 2;
-                    shifts.y = (shifts.y + 1.0) / 2;
-                    drawingSession.FillEllipse(
-                        new Vector2((float)(scalex * (x + shifts.x) + shiftx), (float)(scaley * (y + shifts.y) + shifty)),
-                        5, 5, car.CarColor);
-                }
+                _carImage = await CanvasBitmap.LoadAsync(sender.Device, _carImageUri);
             }
         }
 
@@ -162,6 +209,7 @@ namespace Views
                         }
                     }
                 cells[x2, y2] = _vm.SelectedType;
+                _vm.IsCellsChanged = true;
                 _vm.RecalculateAvailableCells();
                 canv.Invalidate();
             }

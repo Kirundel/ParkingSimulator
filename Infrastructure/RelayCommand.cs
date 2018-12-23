@@ -11,17 +11,21 @@ namespace Infrastructure
     public class RelayCommand : ICommand
     {
         private readonly Action _execute;
+        private readonly Func<bool> _canChangeValue;
 
-        public RelayCommand(Action execute)
+        public RelayCommand(Action execute, Func<bool> canChangeValue = null)
         {
             _execute = execute;
+            if (canChangeValue == null)
+                canChangeValue = () => true;
+            _canChangeValue = canChangeValue;
         }
 
         public event EventHandler CanExecuteChanged;
 
         public bool CanExecute(object parameter)
         {
-            return true;
+            return _canChangeValue();
         }
 
         public void Execute(object parameter)

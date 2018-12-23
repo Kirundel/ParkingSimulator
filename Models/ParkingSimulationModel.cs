@@ -31,5 +31,9 @@ namespace Models
         }
 
         public CellType[,] Cells => _cells;
+
+        public int Width => Cells.GetLength(0) - 2;
+
+        public int Height => Cells.GetLength(1) - 1;
     }
 }

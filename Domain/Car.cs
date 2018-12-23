@@ -51,7 +51,7 @@ namespace Domain
 
         public void Move(double difference)
         {
-            Debug.WriteLine("CAR MOVE");
+            //Debug.WriteLine("CAR MOVE");
 
             while (difference > SMALL_CONSTANT)
             {

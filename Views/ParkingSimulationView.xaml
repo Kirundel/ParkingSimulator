@@ -17,6 +17,18 @@
             x:Name="BoolToBrushConverter"
             FalseBrush="White"
             TrueBrush="LightGray" />
+        <Style x:Name="DefaultTextBlock" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style
+            x:Name="HeaderTextBlock"
+            BasedOn="{StaticResource DefaultTextBlock}"
+            TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Margin" Value="0,15,10,15" />
+        </Style>
         <Style x:Name="DefaultButton" TargetType="Button">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -45,14 +57,27 @@
             </Setter>
         </Style>
         <Style
+            x:Name="IncrementerButton"
+            BasedOn="{StaticResource DefaultButton}"
+            TargetType="Button">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Background" Value="LightGray" />
+            <Setter Property="BorderBrush" Value="Black" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Margin" Value="0,-0.75" />
+            <Setter Property="Height" Value="14" />
+        </Style>
+        <Style
             x:Name="ButtonConstructor"
             BasedOn="{StaticResource DefaultButton}"
             TargetType="Button">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="Height" Value="35" />
-            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Background" Value="LightGray" />
+            <Setter Property="BorderBrush" Value="Black" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Content" Value="Кнопка" />
-            <Setter Property="Margin" Value="0,0,0,0" />
+            <Setter Property="Margin" Value="5" />
         </Style>
         <Style x:Name="ButtonBorderConstructor" TargetType="Border">
             <Setter Property="Width" Value="*" />
@@ -63,10 +88,6 @@
     </Page.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="5*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -79,6 +100,8 @@
             HorizontalContentAlignment="Stretch"
             VerticalContentAlignment="Stretch"
             Background="White"
+            BorderBrush="Black"
+            BorderThickness="1"
             IsItemClickEnabled="False"
             IsTapEnabled="False"
             ItemsSource="{Binding Tabs}">
@@ -88,6 +111,8 @@
                     <Setter Property="VerticalAlignment" Value="Stretch" />
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    <Setter Property="BorderBrush" Value="Black" />
+                    <Setter Property="BorderThickness" Value="0,0,1,0" />
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
@@ -112,66 +137,244 @@
             </ListView.ItemsPanel>
             <VisualStateManager.VisualStateGroups />
         </ListView>
-        <canvas:CanvasControl
-            x:Name="mainDisplay"
-            Grid.Row="1"
-            Grid.Column="0"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            Draw="CanvasControl_Draw"
-            PointerPressed="CanvasControl_PointerPressed" />
-        <Grid
-            x:Name="ConstructorMenu"
-            Grid.Row="1"
-            Grid.Column="1"
-            Visibility="{Binding IsConstructorState, Converter={StaticResource BoolToVisiblityConverter}}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" HorizontalAlignment="Stretch">
-                <Button
-                    Background="{Binding AsphaltSelected, Converter={StaticResource BoolToBrushConverter}}"
-                    Command="{Binding AsphaltCommand}"
-                    Content="Асфальт"
-                    Style="{StaticResource ButtonConstructor}" />
-                <Button
-                    Background="{Binding ParkingSpaceSelected, Converter={StaticResource BoolToBrushConverter}}"
-                    Command="{Binding ParkingSpaceCommand}"
-                    Content="Парковочное место"
-                    Style="{StaticResource ButtonConstructor}" />
-                <Button
-                    Background="{Binding EntrySelected, Converter={StaticResource BoolToBrushConverter}}"
-                    Command="{Binding EntryCommand}"
-                    Content="Въезд"
-                    Style="{StaticResource ButtonConstructor}" />
-                <Button
-                    Background="{Binding ExitSelected, Converter={StaticResource BoolToBrushConverter}}"
-                    Command="{Binding ExitCommand}"
-                    Content="Выезд"
-                    Style="{StaticResource ButtonConstructor}" />
-            </StackPanel>
-        </Grid>
-        <Grid
-            x:Name="SimulationMenu"
-            Grid.Row="1"
-            Grid.Column="1"
-            Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" HorizontalAlignment="Stretch">
-                <Button
-                    Command="{Binding StartSimulationCommand}"
-                    Content="Начать симуляцию"
-                    Style="{StaticResource ButtonConstructor}" />
-                <Button
-                    Command="{Binding StopSimulationCommand}"
-                    Content="Остановить симуляцию"
-                    Style="{StaticResource ButtonConstructor}" />
+
+        <Grid Grid.Row="1" Margin="15,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" MaxWidth="350" />
+            </Grid.ColumnDefinitions>
+            <canvas:CanvasControl
+                x:Name="mainDisplay"
+                Grid.Column="0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Draw="CanvasControl_Draw"
+                PointerPressed="CanvasControl_PointerPressed"
+                Visibility="{Binding IsCanvasControlVisible}" />
+            <Grid
+                x:Name="ConstructorMenu"
+                Grid.Column="1"
+                Visibility="{Binding IsConstructorState, Converter={StaticResource BoolToVisiblityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <StackPanel
+                    Grid.Row="0"
+                    Padding="0,2"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top">
+                    <TextBlock Style="{StaticResource HeaderTextBlock}" Text="Настройка области" />
+                    <Grid Margin="0,5" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border
+                            Width="Auto"
+                            Height="Auto"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            BorderBrush="Black"
+                            BorderThickness="1"
+                            CornerRadius="5">
+                            <Grid DataContext="{Binding WidthIncrementerViewModel}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Width="30"
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="{Binding Value}" />
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <Button
+                                        Grid.Row="0"
+                                        BorderThickness="1,0,0,1"
+                                        Command="{Binding IncreaseValue}"
+                                        Style="{StaticResource IncrementerButton}" />
+                                    <Button
+                                        Grid.Row="1"
+                                        BorderThickness="1,1,0,0"
+                                        Command="{Binding DecreaseValue}"
+                                        Style="{StaticResource IncrementerButton}" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,5,0"
+                            VerticalAlignment="Center"
+                            Text="Количество клеток по горизонтали"
+                            TextWrapping="Wrap" />
+                    </Grid>
+                    <Grid Margin="0,5" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border
+                            Width="Auto"
+                            Height="Auto"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            BorderBrush="Black"
+                            BorderThickness="1"
+                            CornerRadius="5">
+                            <Grid DataContext="{Binding HeightIncrementerViewModel}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Width="30"
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="{Binding Value}" />
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <Button
+                                        Grid.Row="0"
+                                        BorderThickness="1,0,0,1"
+                                        Command="{Binding IncreaseValue}"
+                                        Style="{StaticResource IncrementerButton}" />
+                                    <Button
+                                        Grid.Row="1"
+                                        BorderThickness="1,1,0,0"
+                                        Command="{Binding DecreaseValue}"
+                                        Style="{StaticResource IncrementerButton}" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,5,0"
+                            VerticalAlignment="Center"
+                            Text="Количество клеток по вертикали"
+                            TextWrapping="Wrap" />
+                    </Grid>
+                </StackPanel>
+                <StackPanel
+                    Grid.Row="1"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top">
+
+                    <TextBlock Style="{StaticResource HeaderTextBlock}" Text="Добавить" />
+
+                    <Grid Margin="-5,0,0,0" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Button
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Background="{Binding AsphaltSelected, Converter={StaticResource BoolToBrushConverter}}"
+                            Command="{Binding AsphaltCommand}"
+                            Content="Касса"
+                            Style="{StaticResource ButtonConstructor}" />
+                        <Button
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Background="{Binding AsphaltSelected, Converter={StaticResource BoolToBrushConverter}}"
+                            Command="{Binding AsphaltCommand}"
+                            Content="Проезжая часть"
+                            Style="{StaticResource ButtonConstructor}" />
+                        <Button
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Background="{Binding ParkingSpaceSelected, Converter={StaticResource BoolToBrushConverter}}"
+                            Command="{Binding ParkingSpaceCommand}"
+                            Content="Парковочное место"
+                            Style="{StaticResource ButtonConstructor}" />
+                        <Button
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            Background="{Binding EntrySelected, Converter={StaticResource BoolToBrushConverter}}"
+                            Command="{Binding EntryCommand}"
+                            Content="Въезд"
+                            Style="{StaticResource ButtonConstructor}" />
+                        <Button
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Background="{Binding ExitSelected, Converter={StaticResource BoolToBrushConverter}}"
+                            Command="{Binding ExitCommand}"
+                            Content="Выезд"
+                            Style="{StaticResource ButtonConstructor}" />
+                        <Button
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Background="Transparent"
+                            Command="{Binding ClearCommand}"
+                            Content="Очистить"
+                            Style="{StaticResource ButtonConstructor}" />
+                    </Grid>
+                </StackPanel>
+                <Grid
+                    Grid.Row="2"
+                    Margin="-5,0,0,0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Bottom">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        Grid.Column="0"
+                        Content="Загрузить"
+                        Style="{StaticResource ButtonConstructor}" />
+                    <Button
+                        Grid.Column="1"
+                        Content="Сохранить"
+                        Style="{StaticResource ButtonConstructor}" />
+                </Grid>
+            </Grid>
+            <Grid
+                x:Name="SimulationMenu"
+                Grid.Column="1"
+                Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" HorizontalAlignment="Stretch">
+                    <Button
+                        Command="{Binding StartSimulationCommand}"
+                        Content="Начать симуляцию"
+                        Style="{StaticResource ButtonConstructor}" />
+                    <Button
+                        Command="{Binding StopSimulationCommand}"
+                        Content="Остановить симуляцию"
+                        Style="{StaticResource ButtonConstructor}" />
+                </StackPanel>
+            </Grid>
+            <StackPanel Grid.Column="0" Visibility="{Binding IsHelpState}">
+                <TextBlock FontWeight="Bold" Style="{StaticResource HeaderTextBlock}">
+                    Курсовая работа по дисциплине &quot;Программная инженерия&quot; по теме &quot;Система моделирования работы платной парковки&quot;
+                </TextBlock>
+                <TextBlock Style="{StaticResource DefaultTextBlock}">
+                    Выполнили студенты Самарского Университета факультета информатики группы 6413:<LineBreak />
+                    П.Е. Габрусевич<LineBreak />
+                    К.В. Каймаков<LineBreak />
+                    М.О. Чертовских</TextBlock>
+                <HyperlinkButton Margin="0,15" Content="О системе" />
             </StackPanel>
         </Grid>
     </Grid>

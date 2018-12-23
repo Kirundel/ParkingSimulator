@@ -14,9 +14,12 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.UI.Popups;
 using Infrastructure;
 using Models;
 using Views;
+using UnhandledExceptionEventArgs = Windows.UI.Xaml.UnhandledExceptionEventArgs;
+using UnhandledExceptionEventHandler = Windows.UI.Xaml.UnhandledExceptionEventHandler;
 
 namespace ParkingSimulator
 {
@@ -33,6 +36,7 @@ namespace ParkingSimulator
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            this.UnhandledException += new UnhandledExceptionEventHandler(OnUnhandeledExceptionThrown);
         }
 
         /// <summary>
@@ -105,6 +109,12 @@ namespace ParkingSimulator
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Сохранить состояние приложения и остановить все фоновые операции
             deferral.Complete();
+        }
+
+        private static async void OnUnhandeledExceptionThrown(object sender, UnhandledExceptionEventArgs e)
+        {
+            var md = new MessageDialog(e.Exception.ToString(), "OOPS");
+            await md.ShowAsync();
         }
     }
 }
