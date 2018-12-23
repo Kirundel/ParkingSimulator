@@ -3,7 +3,7 @@ using Domain;
 
 namespace ViewModels.Generators
 {
-    interface ICarGenerator
+    public interface ICarGenerator
     {
         List<Car> Generate(int difference);
     }

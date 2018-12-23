@@ -8,6 +8,7 @@ using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas;
 using Domain;
 using ViewModels;
+using ViewModels.Generators;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -22,8 +23,17 @@ namespace Views
     {
         private readonly Color Filter = Color.FromArgb(255, 155, 0, 0);
         private readonly Uri _carImageUri = new Uri("ms-appx:///Views/Assets/car.png");
+        private readonly Uri _entryImageUri = new Uri("ms-appx:///Views/Assets/entry.png");
+        private readonly Uri _exitImageUri = new Uri("ms-appx:///Views/Assets/exit.png");
+        private readonly Uri _cashboxImageUri = new Uri("ms-appx:///Views/Assets/cashbox.png");
+
+
+        private bool _canDraw = true;
 
         private CanvasBitmap _carImage;
+        private CanvasBitmap _entryImage;
+        private CanvasBitmap _exitImage;
+        private CanvasBitmap _cashboxImage;
 
         private object _locker = new object();
 
@@ -54,12 +64,27 @@ namespace Views
             _vm.InvalidateView += mainDisplay.Invalidate;
             this.DataContext = _vm;
             mainDisplay.Invalidate();
+            RadioButton_Checked(DeterminateRadioButton, null);
+            _vm.GetCarGenerator += GetCarGenerator;
         }
 
         private async void CanvasControl_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
-            if (_vm == null)
+            if (_vm == null || !_canDraw)
                 return;
+
+            if (_carImage == null && _canDraw)
+            {
+                _canDraw = false;
+                _carImage = await CanvasBitmap.LoadAsync(sender.Device, _carImageUri);
+                _entryImage = await CanvasBitmap.LoadAsync(sender.Device, _entryImageUri);
+                _exitImage = await CanvasBitmap.LoadAsync(sender.Device, _exitImageUri);
+                _cashboxImage = await CanvasBitmap.LoadAsync(sender.Device, _cashboxImageUri);
+                _canDraw = true;
+                sender.Invalidate();
+                return;
+            }
+
             //var cbmp = await CanvasBitmap.LoadAsync(sender.Device, _carImageUri);
             lock (_locker)
             {
@@ -119,7 +144,7 @@ namespace Views
                         var tr2def = new Transform2DEffect
                         {
                             Source = tr1,
-                            TransformMatrix = Matrix3x2.CreateRotation((float)PI),
+                            TransformMatrix = Matrix3x2.CreateRotation((float)shifts.angle),
                         };
                         var tr2deft = new Transform2DEffect
                         {
@@ -137,11 +162,6 @@ namespace Views
                     }
                 }
             }
-
-            if (_carImage == null && _vm.IsSimulationState)
-            {
-                _carImage = await CanvasBitmap.LoadAsync(sender.Device, _carImageUri);
-            }
         }
 
         private void DrawCell(CellType type, Rect rect, CanvasDrawingSession drawingSession, bool needApplyFilter)
@@ -157,18 +177,28 @@ namespace Views
                     resultColor = Colors.Yellow;
                     break;
                 case CellType.Parking:
-                    resultColor = Colors.Gray;
-                    break;
                 case CellType.Entry:
-                    resultColor = Colors.Khaki;
-                    break;
                 case CellType.Exit:
-                    resultColor = Colors.Green;
+                case CellType.CashBox:
+                    resultColor = Colors.Gray;
                     break;
             }
             if (needApplyFilter)
                 resultColor = ApplyFilter(resultColor, Filter);
             drawingSession.FillRectangle(rect, resultColor);
+
+            switch(type)
+            {
+                case CellType.Entry:
+                    drawingSession.DrawImage(_entryImage, rect);
+                    break;
+                case CellType.Exit:
+                    drawingSession.DrawImage(_exitImage, rect);
+                    break;
+                case CellType.CashBox:
+                    drawingSession.DrawImage(_cashboxImage, rect);
+                    break;
+            }
         }
 
         private void CanvasControl_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -218,6 +248,62 @@ namespace Views
         private bool InRectangle(CellType[,] cells, int x, int y)
         {
             return x > 0 && y > 0 && x < cells.GetLength(0) - 1 && y < cells.GetLength(1);
+        }
+
+        private void RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (ExponentialParameter1 == null)
+                return;
+            #region TextBoxes Disablings
+            DeterminateParameter1.IsEnabled = false;
+            UniformParameter1.IsEnabled = false;
+            UniformParameter2.IsEnabled = false;
+            NormalParameter1.IsEnabled = false;
+            NormalParameter2.IsEnabled = false;
+            ExponentialParameter1.IsEnabled = false;
+            #endregion
+            
+            if (DeterminateRadioButton.IsChecked ?? false)
+            {
+                DeterminateParameter1.IsEnabled = true;
+                UniformRadioButton.IsEnabled = false;
+                NormalRadioButton.IsEnabled = false;
+                ExponentialRadioButton.IsEnabled = false;
+            }
+            else
+            {
+                UniformRadioButton.IsEnabled = true;
+                NormalRadioButton.IsEnabled = true;
+                ExponentialRadioButton.IsEnabled = true;
+                if (NormalRadioButton.IsChecked ?? false)
+                {
+                    NormalParameter1.IsEnabled = true;
+                    NormalParameter2.IsEnabled = true;
+                }
+                if (UniformRadioButton.IsChecked ?? false)
+                {
+                    UniformParameter1.IsEnabled = true;
+                    UniformParameter2.IsEnabled = true;
+                }
+                if (ExponentialRadioButton.IsChecked ?? false)
+                {
+                    ExponentialParameter1.IsEnabled = true;
+                }
+            }
+        }
+
+        private ICarGenerator GetCarGenerator()
+        {
+            Func<string, double> parser = s => double.Parse(s.Replace('.', ',')) * 1000;
+            if (DeterminateRadioButton?.IsChecked ?? false)
+                return new DeterminateGenerator(parser(DeterminateParameter1.Text));
+            if (UniformRadioButton?.IsChecked ?? false)
+                return new UniformGenerator(parser(UniformParameter1.Text), parser(UniformParameter2.Text));
+            if (NormalRadioButton?.IsChecked ?? false)
+                return new NormalGenerator(parser(NormalParameter1.Text), parser(NormalParameter2.Text));
+            if (ExponentialRadioButton?.IsChecked ?? false)
+                return new ExponentialGenerator(parser(ExponentialParameter1.Text) / (1000 * 1000));
+            return null;
         }
     }
 }

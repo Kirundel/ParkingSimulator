@@ -5,22 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Domain;
 using static Infrastructure.Constants;
+using static System.Math;
 
 namespace ViewModels.Generators
 {
-    public class UniformGenerator : ICarGenerator
+    public class ExponentialGenerator : ICarGenerator
     {
         private double _difference;
 
-        public UniformGenerator(double left, double right)
+        public ExponentialGenerator(double lambda)
         {
-            Left = left;
-            Right = right;
+            Lambda = lambda;
             _difference = 0;
         }
 
-        public double Left { get; }
-        public double Right { get; }
+        public double Lambda { get; }
 
         public List<Car> Generate(int difference)
         {
@@ -30,7 +29,7 @@ namespace ViewModels.Generators
             {
                 result.Add(new Car());
                 var tmp = difference;
-                _difference = RND.NextDouble() * (Right - Left) + Left;
+                _difference = -Log(RND.NextDouble()) / Lambda;
                 _difference += tmp;
             }
             return result;

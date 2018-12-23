@@ -39,7 +39,7 @@ namespace ViewModels
 
         private DateTime _lastUpdate;
         private DispatcherTimer _timer;
-        private ICarGenerator _carGenerator = new UniformGenerator(5000);
+        private ICarGenerator _carGenerator;
 
         private readonly List<ButtonTabViewModel> _tabButtons;
         private ParkingSimulationModel _parkingSimulationModel;
@@ -50,9 +50,6 @@ namespace ViewModels
 
         private List<Car> _cars = new List<Car>();
         private object _carsLocker = new object();
-
-        private int _width;
-        private int _height;
 
         public ParkingSimulationViewModel()
         {
@@ -69,6 +66,7 @@ namespace ViewModels
             ClearCommand = new RelayCommand(() => RegenerateCells());
             StartSimulationCommand = new RelayCommand(StartSimulation);
             StopSimulationCommand = new RelayCommand(StopSimulation);
+            PauseSimulationCommand = new RelayCommand(PauseSimulation);
 
             int xl = 11;
             int yl = 10;
@@ -77,13 +75,16 @@ namespace ViewModels
             _tabButtons.Add(new ButtonTabViewModel(true, "Конструктор", ProgramState.Constructor, OnTabSelected));
             _tabButtons.Add(new ButtonTabViewModel(false, "Визуализатор", ProgramState.Simulation, OnTabSelected));
             _tabButtons.Add(new ButtonTabViewModel(false, "Справка", ProgramState.Help, OnTabSelected));
-            WidthIncrementerViewModel = new IncrementerControlViewModel(10, 5, 20, OnSizeChanged);
-            HeightIncrementerViewModel = new IncrementerControlViewModel(10, 5, 20, OnSizeChanged);
+            WidthIncrementerViewModel = new IncrementerControlViewModel("Количество клеток по горизонтали", 10, 5, 20, OnSizeChanged);
+            HeightIncrementerViewModel = new IncrementerControlViewModel("Количество клеток по вертикали", 10, 5, 20, OnSizeChanged);
+            DayRateIncrementerViewModel = new IncrementerControlViewModel("Стоимость дневного тарифа (руб./ч)", 100, 10, 400, async () => true, 10);
+            NightRateIncrementerViewModel = new IncrementerControlViewModel("Стоимость ночного тарифа (руб./ч)", 100, 10, 200, async () => true, 10);
             RegenerateCells();
             //SelectedType = CellType.Parking;
         }
 
         public event Action InvalidateView;
+        public event Func<ICarGenerator> GetCarGenerator;
 
         public RelayCommand AsphaltCommand { get; }
         public RelayCommand ParkingSpaceCommand { get; }
@@ -93,6 +94,7 @@ namespace ViewModels
 
         public RelayCommand StartSimulationCommand { get; }
         public RelayCommand StopSimulationCommand { get; }
+        public RelayCommand PauseSimulationCommand { get; }
 
         public bool AsphaltSelected => SelectedType == CellType.Parking;
         public bool ParkingSpaceSelected => SelectedType == CellType.ParkingSpace;
@@ -164,6 +166,11 @@ namespace ViewModels
         public IncrementerControlViewModel WidthIncrementerViewModel { get; }
         public IncrementerControlViewModel HeightIncrementerViewModel { get; }
 
+        public IncrementerControlViewModel DayRateIncrementerViewModel { get; }
+        public IncrementerControlViewModel NightRateIncrementerViewModel { get; }
+
+        public int TimeAcceleration { get; set; } = 1;
+
 
         public void RecalculateAvailableCells()
         {
@@ -217,7 +224,13 @@ namespace ViewModels
         public void StartSimulation()
         {
             _lastUpdate = DateTime.Now;
+            _carGenerator = GetCarGenerator();
             _timer.Start();
+        }
+
+        public void PauseSimulation()
+        {
+            //TODO
         }
 
         public void StopSimulation()
@@ -235,6 +248,8 @@ namespace ViewModels
             var now = DateTime.Now;
             var difference = (int)Math.Round((now - _lastUpdate).TotalMilliseconds);
             _lastUpdate = now;
+
+            difference *= TimeAcceleration;
 
             foreach (var car in _cars)
             {

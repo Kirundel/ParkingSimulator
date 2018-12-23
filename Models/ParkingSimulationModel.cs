@@ -1,5 +1,7 @@
 ﻿using Domain;
 using System;
+using System.Threading.Tasks;
+using Windows.Storage;
 using static System.Math;
 
 namespace Models
@@ -11,6 +13,12 @@ namespace Models
         public ParkingSimulationModel()
         {
         }
+
+        public CellType[,] Cells => _cells;
+
+        public int Width => Cells.GetLength(0) - 2;
+
+        public int Height => Cells.GetLength(1) - 1;
 
         public void GenerateCells(int n, int m, int beginN, int endN, int beginM, int endM)
         {
@@ -30,10 +38,52 @@ namespace Models
             _cells[endN, beginM] = CellType.Exit;
         }
 
-        public CellType[,] Cells => _cells;
+        public async Task<bool> SaveToFile(string fileAddress)
+        {
+            var output = "";
+            output += Width + " " + Height;
 
-        public int Width => Cells.GetLength(0) - 2;
+            for (int i = 1; i < Cells.GetLength(0) - 1; i++)
+            {
+                for (int j = 1; j < Cells.GetLength(1); j++)
+                {
+                    switch (Cells[i, j])
+                    {
+                        case CellType.Parking:
+                            output += "P";
+                            break;
+                        case CellType.ParkingSpace:
+                            output += "S";
+                            break;
+                        case CellType.Entry:
+                            output += "I";
+                            break;
+                        case CellType.Exit:
+                            output += "O";
+                            break;
+                        case CellType.CashBox:
+                            output += "C";
+                            break;
+                    }
+                }
+            }
+            try
+            {
+                var storageFile = await StorageFile.GetFileFromPathAsync(fileAddress);
+                if (storageFile == null)
+                    return false;
+                await FileIO.WriteTextAsync(storageFile, output);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-        public int Height => Cells.GetLength(1) - 1;
+        public async Task<bool> ReadFromFile()
+        {
+            return false;
+        }
     }
 }

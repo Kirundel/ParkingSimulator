@@ -106,6 +106,9 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="IncrementerControl.xaml.cs">
+      <DependentUpon>IncrementerControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ParkingSimulationView.xaml.cs">
       <DependentUpon>ParkingSimulationView.xaml</DependentUpon>
     </Compile>
@@ -121,6 +124,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="IncrementerControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ParkingSimulationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -145,7 +152,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\exit.png" />
+    <Content Include="Assets\entry.png" />
     <Content Include="Assets\car.png" />
+    <Content Include="Assets\cashbox.png" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

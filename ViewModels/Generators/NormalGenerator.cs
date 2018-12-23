@@ -8,19 +8,19 @@ using static Infrastructure.Constants;
 
 namespace ViewModels.Generators
 {
-    public class UniformGenerator : ICarGenerator
+    public class NormalGenerator : ICarGenerator
     {
         private double _difference;
 
-        public UniformGenerator(double left, double right)
+        public NormalGenerator(double m, double d)
         {
-            Left = left;
-            Right = right;
+            M = m;
+            D = d;
             _difference = 0;
         }
 
-        public double Left { get; }
-        public double Right { get; }
+        public double M { get; }
+        public double D { get; }
 
         public List<Car> Generate(int difference)
         {
@@ -30,7 +30,11 @@ namespace ViewModels.Generators
             {
                 result.Add(new Car());
                 var tmp = difference;
-                _difference = RND.NextDouble() * (Right - Left) + Left;
+                _difference = 0;
+                for (int i = 0; i < 12; i++)
+                    _difference += RND.NextDouble();
+                _difference -= 6;
+                _difference = _difference * D + M;
                 _difference += tmp;
             }
             return result;

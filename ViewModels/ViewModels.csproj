@@ -107,7 +107,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ButtonTabViewModel.cs" />
+    <Compile Include="Generators\DeterminateGenerator.cs" />
+    <Compile Include="Generators\ExponentialGenerator.cs" />
     <Compile Include="Generators\ICarGenerator.cs" />
+    <Compile Include="Generators\NormalGenerator.cs" />
     <Compile Include="Generators\UniformGenerator.cs" />
     <Compile Include="IncrementerViewModel.cs" />
     <Compile Include="ParkingSimulationViewModel.cs" />

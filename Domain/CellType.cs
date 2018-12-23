@@ -12,6 +12,7 @@ namespace Domain
         Road,
         Parking,
         ParkingSpace,
+        CashBox,
         Entry,
         Exit
     }
