@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain
 {
-    public class Coord
+    public class Coord : IEquatable<Coord>
     {
         public int X, Y;
 
@@ -14,6 +14,21 @@ namespace Domain
         {
             X = x;
             Y = y;
+        }
+
+        public bool Equals(Coord other)
+        {
+            return X == other?.X && Y == other?.Y;
+        }
+
+        public static bool operator ==(Coord first, Coord second)
+        {
+            return first?.Equals(second) ?? second?.X == null;
+        }
+
+        public static bool operator !=(Coord first, Coord second)
+        {
+            return !(first == second);
         }
     }
 

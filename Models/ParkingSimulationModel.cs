@@ -35,6 +35,7 @@ namespace Models
                 }
             }
             _cells[beginN, beginM] = CellType.Entry;
+            _cells[endN - 1, beginM] = CellType.CashBox;
             _cells[endN, beginM] = CellType.Exit;
         }
 

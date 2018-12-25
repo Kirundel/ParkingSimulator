@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using ViewModels.Generators;
 using Windows.UI.Popups;
+using static System.Math;
 
 namespace ViewModels
 {
@@ -51,6 +52,11 @@ namespace ViewModels
         private List<Car> _cars = new List<Car>();
         private object _carsLocker = new object();
 
+        private int _carsOnParking = 0;
+        private int _trucksOnParking = 0;
+        private int _moneyInCashBox = 0;
+        private int _parkingspacesNum = 0;
+
         public ParkingSimulationViewModel()
         {
             _parkingSimulationModel = IoC.GetModel<ParkingSimulationModel>();
@@ -63,6 +69,7 @@ namespace ViewModels
             ParkingSpaceCommand = new RelayCommand(() => SelectedType = CellType.ParkingSpace);
             EntryCommand = new RelayCommand(() => SelectedType = CellType.Entry);
             ExitCommand = new RelayCommand(() => SelectedType = CellType.Exit);
+            CashboxCommand = new RelayCommand(() => SelectedType = CellType.CashBox);
             ClearCommand = new RelayCommand(() => RegenerateCells());
             StartSimulationCommand = new RelayCommand(StartSimulation);
             StopSimulationCommand = new RelayCommand(StopSimulation);
@@ -90,6 +97,7 @@ namespace ViewModels
         public RelayCommand ParkingSpaceCommand { get; }
         public RelayCommand EntryCommand { get; }
         public RelayCommand ExitCommand { get; }
+        public RelayCommand CashboxCommand { get; }
         public RelayCommand ClearCommand { get; }
 
         public RelayCommand StartSimulationCommand { get; }
@@ -100,6 +108,7 @@ namespace ViewModels
         public bool ParkingSpaceSelected => SelectedType == CellType.ParkingSpace;
         public bool EntrySelected => SelectedType == CellType.Entry;
         public bool ExitSelected => SelectedType == CellType.Exit;
+        public bool CashboxSelected => SelectedType == CellType.CashBox;
 
         public bool IsConstructorState => ProgramStateValue == ProgramState.Constructor;
         public bool IsSimulationState => ProgramStateValue == ProgramState.Simulation;
@@ -148,6 +157,11 @@ namespace ViewModels
                         else
                             item.IsSelected = false;
                     NotifyOfPropertyChanged(nameof(ProgramStateValue));
+                    if (value == ProgramState.Simulation)
+                    {
+                        _parkingspacesNum = CountParkingSpaces();
+                        NotifyOfPropertyChanged(nameof(StatisticsHeader));
+                    }
                 }
             }
         }
@@ -162,6 +176,11 @@ namespace ViewModels
                 }
             }
         }
+
+        public string StatisticsHeader => $"Количество легковых автомобилей: {_carsOnParking}\nКоличество грузовых автомобилей: {_trucksOnParking}\nКоличество свободных мест: {_parkingspacesNum}\nВ кассе: {_moneyInCashBox} руб.";
+
+        //public string StatisticsHeader => $"Количество легковых автомобилей: {_carsOnParking}\nКоличество грузовых автомобилей: {_trucksOnParking}\nКоличество свободных мест: {_parkingspacesNum}\nВ кассе: 0 руб.";
+
 
         public IncrementerControlViewModel WidthIncrementerViewModel { get; }
         public IncrementerControlViewModel HeightIncrementerViewModel { get; }
@@ -178,10 +197,29 @@ namespace ViewModels
             switch (SelectedType)
             {
                 case CellType.Entry:
-                case CellType.Exit:
                     for (int i = 1; i < _availableCells.GetLength(0) - 1; i++)
                     {
                         if (Cells[i, 1] == CellType.Entry || Cells[i, 1] == CellType.Exit)
+                            continue;
+                        _availableCells[i, 1] = true;
+                    }
+                    break;
+                case CellType.Exit:
+                    for (int i = 1; i < _availableCells.GetLength(0) - 1; i++)
+                    {
+                        bool availability = Cells[i - 1, 1] == CellType.Exit || Cells[i - 1, 1] == CellType.Parking || Cells[i - 1, 1] == CellType.CashBox;
+                        availability |= Cells[i + 1, 1] == CellType.Exit || Cells[i + 1, 1] == CellType.Parking || Cells[i + 1, 1] == CellType.CashBox;
+                        if (Cells[i, 1] == CellType.Entry 
+                            || Cells[i, 1] == CellType.Exit 
+                            || !availability)
+                            continue;
+                        _availableCells[i, 1] = true;
+                    }
+                    break;
+                case CellType.CashBox:
+                    for (int i = 1; i < _availableCells.GetLength(0) - 1; i++)
+                    {
+                        if ((Cells[i - 1, 1] != CellType.Exit && Cells[i + 1, 1] != CellType.Exit) || Cells[i, 1] == CellType.CashBox)
                             continue;
                         _availableCells[i, 1] = true;
                     }
@@ -223,8 +261,9 @@ namespace ViewModels
 
         public void StartSimulation()
         {
-            _lastUpdate = DateTime.Now;
+            _parkingspacesNum = CountParkingSpaces();
             _carGenerator = GetCarGenerator();
+            _lastUpdate = DateTime.Now;
             _timer.Start();
         }
 
@@ -241,12 +280,22 @@ namespace ViewModels
             InvalidateView?.Invoke();
         }
 
+        private int CountParkingSpaces()
+        {
+            int answer = 0;
+            for (int i = 0; i < Cells.GetLength(0); i++)
+                for (int j = 0; j < Cells.GetLength(1); j++)
+                    if (Cells[i, j] == CellType.ParkingSpace)
+                        answer++;
+            return answer;
+        }
+
         private void TimerTick(object sender, object parameter)
         {
             //Debug.WriteLine("TimerTick begin");
 
             var now = DateTime.Now;
-            var difference = (int)Math.Round((now - _lastUpdate).TotalMilliseconds);
+            var difference = (int)Round((now - _lastUpdate).TotalMilliseconds);
             _lastUpdate = now;
 
             difference *= TimeAcceleration;
@@ -256,30 +305,91 @@ namespace ViewModels
                 car.Move(difference);
             }
 
+            Func<int> GenerateStopTime = () => 20000;
+
             lock (_carsLocker)
             {
                 foreach (var car in _carGenerator.Generate(difference))
                 {
                     //Debug.WriteLine("NEW CAR");
                     _cars.Add(car);
-                    var parkingSpace = FindFreeParkingSpace();
-                    if (parkingSpace == null)
+                    if (car.IsTruck)
                     {
-                        car.GenerateWay(new Queue<Coord>(FindWay(new Coord(0, 0), new Coord(Cells.GetLength(0), 0))));
+                        var parkingSpace = FindFreeTruckParkingSpace();
+                        if (parkingSpace.first == null)
+                        {
+                            car.GenerateWay(new Queue<Coord>(FindWay(new Coord(0, 0), new Coord(Cells.GetLength(0), 0))));
+                        }
+                        else
+                        {
+                            _lockedCell[parkingSpace.first.X, parkingSpace.first.Y] = true;
+                            _lockedCell[parkingSpace.second.X, parkingSpace.second.Y] = true;
+                            _parkingspacesNum -= 2;
+
+                            var way11 = FindWay(new Coord(0, 0), parkingSpace.first);
+                            var way12 = FindWay(new Coord(0, 0), parkingSpace.second);
+                            var way21 = FindWay(parkingSpace.second, new Coord(Cells.GetLength(0), 0));
+                            var way22 = FindWay(parkingSpace.first, new Coord(Cells.GetLength(0), 0));
+
+                            List<Coord> way1;
+                            List<Coord> way2;
+                            if (way11.Count + way21.Count < way12.Count + way22.Count)
+                            {
+                                way1 = way11;
+                                way2 = way21;
+                            }
+                            else
+                            {
+                                way1 = way12;
+                                way2 = way22;
+                            }
+
+                            IEnumerable<Coord> result = way1;
+                            result = result.Append(new StopCoord(way2[0].X, way2[0].Y, GenerateStopTime()));
+                            result = result.Concat(way2.Skip(1));
+                            var q = new Queue<Coord>(result);
+                            car.GenerateWay(q);
+                            car.UnlockParkingSpace += () =>
+                            {
+                                _lockedCell[parkingSpace.first.X, parkingSpace.first.Y] = false;
+                                _lockedCell[parkingSpace.second.X, parkingSpace.second.Y] = false;
+                                _parkingspacesNum += 2;
+                            };
+                        }
                     }
                     else
                     {
-                        _lockedCell[parkingSpace.X, parkingSpace.Y] = true;
-                        var way1 = FindWay(new Coord(0, 0), parkingSpace);
-                        var way2 = FindWay(parkingSpace, new Coord(Cells.GetLength(0), 0));
-                        var result = way1.Take(way1.Count - 1);
-                        result = result.Append(new StopCoord(parkingSpace.X, parkingSpace.Y, 20000));
-                        result = result.Concat(way2.Skip(1));
-                        var q = new Queue<Coord>(result);
-                        car.GenerateWay(q);
-                        car.UnlockParkingSpace += () => _lockedCell[parkingSpace.X, parkingSpace.Y] = false;
+                        var parkingSpace = FindFreeParkingSpace();
+                        if (parkingSpace == null)
+                        {
+                            car.GenerateWay(new Queue<Coord>(FindWay(new Coord(0, 0), new Coord(Cells.GetLength(0), 0))));
+                        }
+                        else
+                        {
+                            _lockedCell[parkingSpace.X, parkingSpace.Y] = true;
+                            _parkingspacesNum--;
+
+                            var way1 = FindWay(new Coord(0, 0), parkingSpace);
+                            var way2 = FindWay(parkingSpace, new Coord(Cells.GetLength(0), 0));
+                            var result = way1.Take(way1.Count - 1);
+                            result = result.Append(new StopCoord(parkingSpace.X, parkingSpace.Y, GenerateStopTime()));
+                            result = result.Concat(way2.Skip(1));
+                            var q = new Queue<Coord>(result);
+                            car.GenerateWay(q);
+                            car.UnlockParkingSpace += () => 
+                            {
+                                _lockedCell[parkingSpace.X, parkingSpace.Y] = false;
+                                _parkingspacesNum++;
+                            };
+                        }
                     }
+
                     car.Speed = CAR_SPEED;
+
+                    car.Entry = GetFirstElement(Cells, CellType.Entry);
+                    car.Exit = GetFirstElement(Cells, CellType.Exit);
+                    car.EntryReached += OnCarReachedEntry;
+                    car.ExitReached += OnCarReacheExit;
                 }
                 _cars.RemoveAll(x => x.NeedDelete);
             }
@@ -366,6 +476,29 @@ namespace ViewModels
             return null;
         }
 
+        private (Coord first, Coord second) FindFreeTruckParkingSpace()
+        {
+            for (int y = 1; y < Cells.GetLength(1); y++)
+            {
+                for (int x = 1; x < Cells.GetLength(0) - 1; x++)
+                {
+                    if (Cells[x, y] == CellType.ParkingSpace && !_lockedCell[x, y])
+                    {
+                        for (int i = 0; i < dx.Length; i++)
+                        {
+                            int x1 = x + dx[i];
+                            int y1 = y + dy[i];
+                            if (InRectangle(x1, y1) && Cells[x1, y1] == CellType.ParkingSpace && !_lockedCell[x1, y1])
+                            {
+                                return (new Coord(x, y), new Coord(x1, y1));
+                            }
+                        }
+                    }
+                }
+            }
+            return (null, null);
+        }
+
         private bool CheckCorrect(CellType[,] cells, Coord begin)
         {
             bool[,] used = new bool[cells.GetLength(0), cells.GetLength(1)];
@@ -384,8 +517,7 @@ namespace ViewModels
                     if (!InRectangle(newx, newy))
                         continue;
                     if (!used[newx, newy]
-                        && cells[newx, newy] != CellType.Empty
-                        && cells[newx, newy] != CellType.Road)
+                        && _allowedStep[Cells[top.X, top.Y]].Contains(Cells[newx, newy]) || Cells[newx, newy] == CellType.ParkingSpace)
                     {
                         used[newx, newy] = true;
                         q.Enqueue(new Coord(newx, newy));
@@ -433,6 +565,7 @@ namespace ViewModels
             NotifyOfPropertyChanged(nameof(ParkingSpaceSelected));
             NotifyOfPropertyChanged(nameof(ExitSelected));
             NotifyOfPropertyChanged(nameof(EntrySelected));
+            NotifyOfPropertyChanged(nameof(CashboxSelected));
         }
 
         private void OnTabSelected(ProgramState state)
@@ -482,6 +615,25 @@ namespace ViewModels
             _lockedCell = new bool[_parkingSimulationModel.Cells.GetLength(0), _parkingSimulationModel.Cells.GetLength(1)];
             RecalculateAvailableCells();
             InvalidateView?.Invoke();
+        }
+
+        private void OnCarReachedEntry(Car car)
+        {
+            if (car.IsTruck)
+                _trucksOnParking++;
+            else
+                _carsOnParking++;
+            NotifyOfPropertyChanged(nameof(StatisticsHeader));
+        }
+
+        private void OnCarReacheExit(Car car)
+        {
+            if (car.IsTruck)
+                _trucksOnParking--;
+            else
+                _carsOnParking--;
+            _moneyInCashBox +=  (int)Ceiling((car.AllStep / (3600.0 * 1000)) * DayRateIncrementerViewModel.Value);
+            NotifyOfPropertyChanged(nameof(StatisticsHeader));
         }
     }
 }

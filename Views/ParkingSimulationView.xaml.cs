@@ -146,10 +146,11 @@ namespace Views
                             Source = tr1,
                             TransformMatrix = Matrix3x2.CreateRotation((float)shifts.angle),
                         };
+                        var sizeconst = car.IsTruck ? 100 : 200;
                         var tr2deft = new Transform2DEffect
                         {
                             Source = tr2def,
-                            TransformMatrix = Matrix3x2.CreateScale((float)(carWidth / 200))
+                            TransformMatrix = Matrix3x2.CreateScale((float)(carWidth / sizeconst))
                         };
                         drawingSession.DrawImage(
                             tr2deft,
@@ -229,16 +230,29 @@ namespace Views
             var y2 = (int)y1;
             if (InRectangle(cells, x2, y2) && availableCells[x2, y2])
             {
-                if (_vm.SelectedType == CellType.Exit || _vm.SelectedType == CellType.Entry)
+                if (_vm.SelectedType == CellType.Exit || _vm.SelectedType == CellType.Entry || _vm.SelectedType == CellType.CashBox)
                     for (int i = 0; i < cells.GetLength(0); i++)
                     {
                         for (int j = 0; j < cells.GetLength(1); j++)
                         {
-                            if (cells[i, j] == _vm.SelectedType)
+                            if (cells[i, j] == _vm.SelectedType 
+                                || (_vm.SelectedType == CellType.Exit 
+                                    && cells[i, j] == CellType.CashBox))
                                 cells[i, j] = CellType.Parking;
                         }
                     }
                 cells[x2, y2] = _vm.SelectedType;
+                if (_vm.SelectedType == CellType.Exit)
+                {
+                    if (cells[x2 - 1, y2] == CellType.Parking)
+                    {
+                        cells[x2 - 1, y2] = CellType.CashBox;
+                    }
+                    else
+                    {
+                        cells[x2 + 1, y2] = CellType.CashBox;
+                    }
+                }
                 _vm.IsCellsChanged = true;
                 _vm.RecalculateAvailableCells();
                 canv.Invalidate();
@@ -262,7 +276,8 @@ namespace Views
             NormalParameter2.IsEnabled = false;
             ExponentialParameter1.IsEnabled = false;
             #endregion
-            
+
+            #region RadioButton and TextBoxes Enablings
             if (DeterminateRadioButton.IsChecked ?? false)
             {
                 DeterminateParameter1.IsEnabled = true;
@@ -290,6 +305,7 @@ namespace Views
                     ExponentialParameter1.IsEnabled = true;
                 }
             }
+            #endregion
         }
 
         private ICarGenerator GetCarGenerator()

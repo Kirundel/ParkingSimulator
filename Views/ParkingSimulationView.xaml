@@ -142,15 +142,47 @@
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="2*" MaxWidth="350" />
             </Grid.ColumnDefinitions>
-            <canvas:CanvasControl
-                x:Name="mainDisplay"
+            <Grid
                 Grid.Column="0"
-                Margin="0,0,10,0"
                 HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                Draw="CanvasControl_Draw"
-                PointerPressed="CanvasControl_PointerPressed"
-                Visibility="{Binding IsCanvasControlVisible}" />
+                VerticalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Text="{Binding StatisticsHeader}"
+                    Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}" />
+                <canvas:CanvasControl
+                    x:Name="mainDisplay"
+                    Grid.Row="1"
+                    Margin="0,0,10,0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Draw="CanvasControl_Draw"
+                    PointerPressed="CanvasControl_PointerPressed"
+                    Visibility="{Binding IsCanvasControlVisible}" />
+                <StackPanel Grid.Row="2" Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}">
+                    <TextBlock Style="{StaticResource HeaderTextBlock}">Статистика</TextBlock>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Style="{StaticResource DefaultTextBlock}">Начало</TextBlock>
+                        <CalendarDatePicker Grid.Column="1" Margin="10,0" />
+                        <TextBlock Grid.Column="2" Style="{StaticResource DefaultTextBlock}">Конец</TextBlock>
+                        <CalendarDatePicker Grid.Column="3" Margin="10,0" />
+                    </Grid>
+
+                    <TextBlock Style="{StaticResource DefaultTextBlock}">Среднее время стоянки за выбранный период: 0.00ч</TextBlock>
+                    <TextBlock Style="{StaticResource DefaultTextBlock}">Доход за выбранный период: 0 руб.</TextBlock>
+                </StackPanel>
+            </Grid>
             <Grid
                 x:Name="ConstructorMenu"
                 Grid.Column="1"
@@ -189,8 +221,8 @@
                         <Button
                             Grid.Row="0"
                             Grid.Column="0"
-                            Background="{Binding AsphaltSelected, Converter={StaticResource BoolToBrushConverter}}"
-                            Command="{Binding AsphaltCommand}"
+                            Background="{Binding CashboxSelected, Converter={StaticResource BoolToBrushConverter}}"
+                            Command="{Binding CashboxCommand}"
                             Content="Касса"
                             Style="{StaticResource ButtonConstructor}" />
                         <Button
