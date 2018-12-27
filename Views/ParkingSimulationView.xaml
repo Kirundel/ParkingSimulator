@@ -28,6 +28,7 @@
             TargetType="TextBlock">
             <Setter Property="FontSize" Value="20" />
             <Setter Property="Margin" Value="0,15,10,15" />
+            <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <Style x:Name="DefaultButton" TargetType="Button">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -68,12 +69,6 @@
             <Setter Property="Content" Value="Кнопка" />
             <Setter Property="Margin" Value="5" />
         </Style>
-        <Style x:Name="ButtonBorderConstructor" TargetType="Border">
-            <Setter Property="Width" Value="*" />
-            <Setter Property="Height" Value="35" />
-            <Setter Property="BorderThickness" Value="3,3,3,3" />
-            <Setter Property="BorderBrush" Value="Black" />
-        </Style>
         <Style x:Name="FlowParameterTextBox" TargetType="TextBox">
             <Setter Property="Width" Value="50" />
             <Setter Property="MinHeight" Value="20" />
@@ -83,16 +78,18 @@
             <Setter Property="BorderBrush" Value="Black" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
     </Page.Resources>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <ListView
+            <ListView
             Grid.Row="0"
             Grid.Column="0"
             HorizontalAlignment="Stretch"
@@ -104,19 +101,19 @@
             IsItemClickEnabled="False"
             IsTapEnabled="False"
             ItemsSource="{Binding Tabs}">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalAlignment" Value="Stretch" />
-                    <Setter Property="VerticalAlignment" Value="Stretch" />
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                    <Setter Property="BorderBrush" Value="Black" />
-                    <Setter Property="BorderThickness" Value="0,0,1,0" />
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Button
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalAlignment" Value="Stretch" />
+                        <Setter Property="VerticalAlignment" Value="Stretch" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                        <Setter Property="BorderBrush" Value="Black" />
+                        <Setter Property="BorderThickness" Value="0,0,1,0" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Button
                         Margin="-12,0"
                         Padding="15,0"
                         HorizontalAlignment="Stretch"
@@ -127,35 +124,35 @@
                         Command="{Binding ClickCommand}"
                         Content="{Binding Text}"
                         Style="{StaticResource DefaultButton}" />
-                </DataTemplate>
-            </ListView.ItemTemplate>
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <ItemsStackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-            <VisualStateManager.VisualStateGroups />
-        </ListView>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsStackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+                <VisualStateManager.VisualStateGroups />
+            </ListView>
 
-        <Grid Grid.Row="1" Margin="15,15">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
-                <ColumnDefinition Width="2*" MaxWidth="350" />
-            </Grid.ColumnDefinitions>
-            <Grid
+            <Grid Grid.Row="1" Margin="15,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="2*" MaxWidth="350" />
+                </Grid.ColumnDefinitions>
+                <Grid
                 Grid.Column="0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
                     Grid.Row="0"
                     Text="{Binding StatisticsHeader}"
                     Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}" />
-                <canvas:CanvasControl
+                    <canvas:CanvasControl
                     x:Name="mainDisplay"
                     Grid.Row="1"
                     Margin="0,0,10,0"
@@ -164,149 +161,151 @@
                     Draw="CanvasControl_Draw"
                     PointerPressed="CanvasControl_PointerPressed"
                     Visibility="{Binding IsCanvasControlVisible}" />
-                <StackPanel Grid.Row="2" Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}">
-                    <TextBlock Style="{StaticResource HeaderTextBlock}">Статистика</TextBlock>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Style="{StaticResource DefaultTextBlock}">Начало</TextBlock>
-                        <CalendarDatePicker Grid.Column="1" Margin="10,0" />
-                        <TextBlock Grid.Column="2" Style="{StaticResource DefaultTextBlock}">Конец</TextBlock>
-                        <CalendarDatePicker Grid.Column="3" Margin="10,0" />
-                    </Grid>
+                    <StackPanel Grid.Row="2" Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}">
+                        <TextBlock Style="{StaticResource HeaderTextBlock}">Статистика</TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Style="{StaticResource DefaultTextBlock}">Начало</TextBlock>
+                            <CalendarDatePicker Grid.Column="1" Margin="10,0" Date="{Binding BeginDate, Mode=TwoWay}"  />
+                            <TextBlock Grid.Column="2" Style="{StaticResource DefaultTextBlock}">Конец</TextBlock>
+                            <CalendarDatePicker Grid.Column="3" Margin="10,0" Date="{Binding EndDate, Mode=TwoWay}"/>
+                        </Grid>
 
-                    <TextBlock Style="{StaticResource DefaultTextBlock}">Среднее время стоянки за выбранный период: 0.00ч</TextBlock>
-                    <TextBlock Style="{StaticResource DefaultTextBlock}">Доход за выбранный период: 0 руб.</TextBlock>
-                </StackPanel>
-            </Grid>
-            <Grid
+                        <TextBlock Style="{StaticResource DefaultTextBlock}" Text="{Binding StatisticsHeader2}"/>
+                    </StackPanel>
+                </Grid>
+                <Grid
                 x:Name="ConstructorMenu"
                 Grid.Column="1"
                 Visibility="{Binding IsConstructorState, Converter={StaticResource BoolToVisiblityConverter}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <StackPanel
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel
                     Grid.Row="0"
                     Padding="0,2"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Top">
-                    <TextBlock Style="{StaticResource HeaderTextBlock}" Text="Настройка области" />
-                    <local:IncrementerControl HorizontalAlignment="Stretch" DataContext="{Binding WidthIncrementerViewModel}" />
-                    <local:IncrementerControl HorizontalAlignment="Stretch" DataContext="{Binding HeightIncrementerViewModel}" />
-                </StackPanel>
-                <StackPanel
+                        <TextBlock Style="{StaticResource HeaderTextBlock}" Text="Настройка области" />
+                        <local:IncrementerControl HorizontalAlignment="Stretch" DataContext="{Binding WidthIncrementerViewModel}" />
+                        <local:IncrementerControl HorizontalAlignment="Stretch" DataContext="{Binding HeightIncrementerViewModel}" />
+                    </StackPanel>
+                    <StackPanel
                     Grid.Row="1"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Top">
 
-                    <TextBlock Style="{StaticResource HeaderTextBlock}" Text="Добавить" />
+                        <TextBlock Style="{StaticResource HeaderTextBlock}" Text="Добавить" />
 
-                    <Grid Margin="-5,0,0,0" HorizontalAlignment="Stretch">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Button
+                        <Grid Margin="-5,0,0,0" HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Button
                             Grid.Row="0"
                             Grid.Column="0"
                             Background="{Binding CashboxSelected, Converter={StaticResource BoolToBrushConverter}}"
                             Command="{Binding CashboxCommand}"
                             Content="Касса"
                             Style="{StaticResource ButtonConstructor}" />
-                        <Button
+                            <Button
                             Grid.Row="0"
                             Grid.Column="1"
                             Background="{Binding AsphaltSelected, Converter={StaticResource BoolToBrushConverter}}"
                             Command="{Binding AsphaltCommand}"
                             Content="Проезжая часть"
                             Style="{StaticResource ButtonConstructor}" />
-                        <Button
+                            <Button
                             Grid.Row="1"
                             Grid.Column="1"
                             Background="{Binding ParkingSpaceSelected, Converter={StaticResource BoolToBrushConverter}}"
                             Command="{Binding ParkingSpaceCommand}"
                             Content="Парковочное место"
                             Style="{StaticResource ButtonConstructor}" />
-                        <Button
+                            <Button
                             Grid.Row="2"
                             Grid.Column="0"
                             Background="{Binding EntrySelected, Converter={StaticResource BoolToBrushConverter}}"
                             Command="{Binding EntryCommand}"
                             Content="Въезд"
                             Style="{StaticResource ButtonConstructor}" />
-                        <Button
+                            <Button
                             Grid.Row="1"
                             Grid.Column="0"
                             Background="{Binding ExitSelected, Converter={StaticResource BoolToBrushConverter}}"
                             Command="{Binding ExitCommand}"
                             Content="Выезд"
                             Style="{StaticResource ButtonConstructor}" />
-                        <Button
+                            <Button
                             Grid.Row="2"
                             Grid.Column="1"
                             Background="Transparent"
                             Command="{Binding ClearCommand}"
                             Content="Очистить"
                             Style="{StaticResource ButtonConstructor}" />
-                    </Grid>
-                </StackPanel>
-                <Grid
+                        </Grid>
+                    </StackPanel>
+                    <Grid
                     Grid.Row="2"
                     Margin="-5,0,0,0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Bottom">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Button
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button
                         Grid.Column="0"
                         Content="Загрузить"
-                        Style="{StaticResource ButtonConstructor}" />
-                    <Button
+                        Style="{StaticResource ButtonConstructor}"
+                        Command="{Binding LoadCommand}" />
+                        <Button
                         Grid.Column="1"
                         Content="Сохранить"
-                        Style="{StaticResource ButtonConstructor}" />
+                        Style="{StaticResource ButtonConstructor}"
+                        Command="{Binding SaveCommand}" />
+                    </Grid>
                 </Grid>
-            </Grid>
 
-            <Grid
-                x:Name="SimulationMenu"
-                Grid.Column="1"
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" 
+                Grid.Column="1" 
                 Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" HorizontalAlignment="Stretch">
-                    <TextBlock Style="{StaticResource HeaderTextBlock}">Настройка генерации потока ТС</TextBlock>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    <Grid
+                x:Name="SimulationMenu">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <RadioButton
+                        <StackPanel Grid.Row="0" HorizontalAlignment="Stretch">
+                            <TextBlock Style="{StaticResource HeaderTextBlock}">Настройка генерации потока ТС</TextBlock>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <RadioButton
                             x:Name="DeterminateRadioButton"
                             Grid.Row="0"
                             Grid.Column="0"
@@ -314,20 +313,20 @@
                             Content="Детерминированный"
                             GroupName="FlowType"
                             IsChecked="True" />
-                        <TextBox
+                                <TextBox
                             x:Name="DeterminateParameter1"
                             Grid.Row="0"
                             Grid.Column="1"
                             PlaceholderText="t"
                             Style="{StaticResource FlowParameterTextBox}" />
-                        <RadioButton
+                                <RadioButton
                             x:Name="RandomRadioButton"
                             Grid.Row="1"
                             Grid.Column="0"
                             Checked="RadioButton_Checked"
                             Content="Случайный"
                             GroupName="FlowType" />
-                        <RadioButton
+                                <RadioButton
                             x:Name="UniformRadioButton"
                             Grid.Row="2"
                             Grid.Column="0"
@@ -336,19 +335,19 @@
                             Content="Равномерный ЗР"
                             GroupName="RandomFlowType"
                             IsChecked="True" />
-                        <TextBox
+                                <TextBox
                             x:Name="UniformParameter1"
                             Grid.Row="2"
                             Grid.Column="1"
                             PlaceholderText="min"
                             Style="{StaticResource FlowParameterTextBox}" />
-                        <TextBox
+                                <TextBox
                             x:Name="UniformParameter2"
                             Grid.Row="2"
                             Grid.Column="2  "
                             PlaceholderText="max"
                             Style="{StaticResource FlowParameterTextBox}" />
-                        <RadioButton
+                                <RadioButton
                             x:Name="NormalRadioButton"
                             Grid.Row="3"
                             Grid.Column="0"
@@ -356,19 +355,19 @@
                             Checked="RadioButton_Checked"
                             Content="Нормальный ЗР"
                             GroupName="RandomFlowType" />
-                        <TextBox
+                                <TextBox
                             x:Name="NormalParameter1"
                             Grid.Row="3"
                             Grid.Column="1"
                             PlaceholderText="M"
                             Style="{StaticResource FlowParameterTextBox}" />
-                        <TextBox
+                                <TextBox
                             x:Name="NormalParameter2"
                             Grid.Row="3"
                             Grid.Column="2"
                             PlaceholderText="D"
                             Style="{StaticResource FlowParameterTextBox}" />
-                        <RadioButton
+                                <RadioButton
                             x:Name="ExponentialRadioButton"
                             Grid.Row="4"
                             Grid.Column="0"
@@ -376,82 +375,103 @@
                             Checked="RadioButton_Checked"
                             Content="Показательный ЗР"
                             GroupName="RandomFlowType" />
-                        <TextBox
+                                <TextBox
                             x:Name="ExponentialParameter1"
                             Grid.Row="4"
                             Grid.Column="1"
                             PlaceholderText="lambda"
                             Style="{StaticResource FlowParameterTextBox}" />
-                    </Grid>
-                    <TextBlock Style="{StaticResource HeaderTextBlock}">Настройка тарифа</TextBlock>
-                    <local:IncrementerControl HorizontalAlignment="Stretch" DataContext="{Binding DayRateIncrementerViewModel}" />
-                    <local:IncrementerControl HorizontalAlignment="Stretch" DataContext="{Binding NightRateIncrementerViewModel}" />
-                    <TextBlock Style="{StaticResource HeaderTextBlock}">Моделирование</TextBlock>
-                    <TextBlock Style="{StaticResource DefaultTextBlock}">Ускорение модельного времени</TextBlock>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="10" />
-                            <ColumnDefinition Width="2*" />
-                            <ColumnDefinition Width="25" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
+                            </Grid>
+                            <TextBlock Style="{StaticResource HeaderTextBlock}">Настройка тарифа</TextBlock>
+                            <local:IncrementerControl x:Name="DayRateIncrementerControl" HorizontalAlignment="Stretch" DataContext="{Binding DayRateIncrementerViewModel}" />
+                            <local:IncrementerControl x:Name="NightRateIncrementerControl" HorizontalAlignment="Stretch" DataContext="{Binding NightRateIncrementerViewModel}" />
+                            <TextBlock Style="{StaticResource HeaderTextBlock}">Моделирование</TextBlock>
+                            <TextBlock Style="{StaticResource DefaultTextBlock}">Ускорение модельного времени</TextBlock>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="25" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
                             Grid.Column="0"
                             Margin="0,0,0,7"
                             VerticalAlignment="Center">
                             1
-                        </TextBlock>
-                        <Slider
+                                </TextBlock>
+                                <Slider
                             Grid.Column="1"
                             VerticalAlignment="Center"
                             Maximum="10"
                             Minimum="1"
                             StepFrequency="1"
                             Value="{Binding TimeAcceleration, Mode=TwoWay}" />
-                        <TextBlock
+                                <TextBlock
                             Grid.Column="2"
                             Margin="5,0,0,7"
                             VerticalAlignment="Center">
                             10
-                        </TextBlock>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="90" />
-                            <ColumnDefinition Width="90" />
-                            <ColumnDefinition Width="90" />
-                        </Grid.ColumnDefinitions>
-                        <Button
+                                </TextBlock>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="90" />
+                                </Grid.ColumnDefinitions>
+                                <Button
                             Grid.Column="0"
                             Command="{Binding StartSimulationCommand}"
                             Content="Старт"
                             Style="{StaticResource ButtonConstructor}" />
-                        <Button
+                                <Button
                             Grid.Column="1"
                             Command="{Binding PauseSimulationCommand}"
                             Content="Пауза"
                             Style="{StaticResource ButtonConstructor}" />
-                        <Button
+                                <Button
                             Grid.Column="2"
                             Command="{Binding StopSimulationCommand}"
                             Content="Стоп"
                             Style="{StaticResource ButtonConstructor}" />
+                            </Grid>
+                        </StackPanel>
                     </Grid>
-                </StackPanel>
-            </Grid>
+                </ScrollViewer>
 
-            <StackPanel Grid.Column="0" Visibility="{Binding IsHelpState}">
-                <TextBlock FontWeight="Bold" Style="{StaticResource HeaderTextBlock}">
+                <StackPanel Grid.Column="0" Visibility="{Binding IsHelpState}">
+                    <TextBlock FontWeight="Bold" Style="{StaticResource HeaderTextBlock}">
                     Курсовая работа по дисциплине &quot;Программная инженерия&quot; по теме &quot;Система моделирования работы платной парковки&quot;
-                </TextBlock>
-                <TextBlock Style="{StaticResource DefaultTextBlock}">
+                    </TextBlock>
+                    <TextBlock Style="{StaticResource DefaultTextBlock}">
                     Выполнили студенты Самарского Университета факультета информатики группы 6413:<LineBreak />
                     П.Е. Габрусевич<LineBreak />
                     К.В. Каймаков<LineBreak />
                     М.О. Чертовских</TextBlock>
-                <HyperlinkButton Margin="0,15" Content="О системе" />
-            </StackPanel>
+                    <HyperlinkButton Margin="0,15" Content="О системе" Click="HyperlinkButton_Click" />
+                </StackPanel>
 
+            </Grid>
+        </Grid>
+        <Grid x:Name="HelpView" Visibility="Collapsed" Background="White" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Button 
+                Padding="15,0"
+                HorizontalAlignment="Left"
+                BorderBrush="Black"
+                BorderThickness="1"
+                Background="White"
+                Style="{StaticResource DefaultButton}" 
+                Click="CloseWebViewButton_Click">Закрыть справку</Button>
+            <WebView 
+                Grid.Row="1" 
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch" 
+                Source="ms-appx-web:///Views/Assets/help.html"/>
         </Grid>
     </Grid>
 </Page>

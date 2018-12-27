@@ -31,7 +31,7 @@ namespace ViewModels
         public int Value
         {
             get => _value;
-            private set
+            set
             {
                 _value = value;
                 NotifyOfPropertyChanged(nameof(Value));

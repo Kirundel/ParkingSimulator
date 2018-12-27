@@ -8,12 +8,19 @@ using static Infrastructure.Constants;
 
 namespace ViewModels.Generators
 {
-    public class UniformGenerator : ICarGenerator
+    public class UniformGenerator : CarGeneratorBase
     {
+        private const int PERIOD_LEFT_BORDER = 10 * 1000;
+        private const int PERIOD_RIGHT_BORDER = 3600 * 1000;
+
         private double _difference;
 
         public UniformGenerator(double left, double right)
         {
+            CheckValue(left, PERIOD_LEFT_BORDER, PERIOD_RIGHT_BORDER, "нижняя граница интервала");
+            CheckValue(right, PERIOD_LEFT_BORDER, PERIOD_RIGHT_BORDER, "верхняя граница интервала");
+            if (right < left)
+                throw new IncorrectGeneratorParameterException("", "", IncorrectGeneratorParameterExceptionType.MIN_MORE_MAX);
             Left = left;
             Right = right;
             _difference = 0;
@@ -22,7 +29,7 @@ namespace ViewModels.Generators
         public double Left { get; }
         public double Right { get; }
 
-        public List<Car> Generate(int difference)
+        public override List<Car> Generate(int difference)
         {
             _difference -= difference;
             List<Car> result = new List<Car>();

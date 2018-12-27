@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Numerics;
 using Windows.UI.Xaml.Media.Imaging;
+using Windows.System;
 using static System.Math;
 
 namespace Views
@@ -66,6 +67,7 @@ namespace Views
             mainDisplay.Invalidate();
             RadioButton_Checked(DeterminateRadioButton, null);
             _vm.GetCarGenerator += GetCarGenerator;
+            _vm.RefreshSimulationMenuEnabling += SetEnabling;
         }
 
         private async void CanvasControl_Draw(CanvasControl sender, CanvasDrawEventArgs args)
@@ -275,6 +277,8 @@ namespace Views
             NormalParameter1.IsEnabled = false;
             NormalParameter2.IsEnabled = false;
             ExponentialParameter1.IsEnabled = false;
+            RandomRadioButton.IsEnabled = true;
+            DeterminateRadioButton.IsEnabled = true;
             #endregion
 
             #region RadioButton and TextBoxes Enablings
@@ -308,7 +312,44 @@ namespace Views
             #endregion
         }
 
-        private ICarGenerator GetCarGenerator()
+        private void SetEnabling(bool res)
+        {
+            if (res)
+            {
+                #region DISABLINGS radiobuttons
+                DeterminateRadioButton.IsEnabled = false;
+                RandomRadioButton.IsEnabled = false;
+                UniformRadioButton.IsEnabled = false;
+                NormalRadioButton.IsEnabled = false;
+                ExponentialRadioButton.IsEnabled = false;
+                #endregion
+
+                #region DISABLINGS parameters
+                DeterminateParameter1.IsEnabled = false;
+                UniformParameter1.IsEnabled = false;
+                UniformParameter2.IsEnabled = false;
+                NormalParameter1.IsEnabled = false;
+                NormalParameter2.IsEnabled = false;
+                ExponentialParameter1.IsEnabled = false;
+                #endregion
+
+                #region DISABLINGS incrementercontrols
+                DayRateIncrementerControl.IsEnabled = false;
+                NightRateIncrementerControl.IsEnabled = false;
+                #endregion
+            }
+            else
+            {
+                RadioButton_Checked(null, null);
+
+                #region ENABLINGS incrementercontrols
+                DayRateIncrementerControl.IsEnabled = false;
+                NightRateIncrementerControl.IsEnabled = false;
+                #endregion
+            }
+        }
+
+        private CarGeneratorBase GetCarGenerator()
         {
             Func<string, double> parser = s => double.Parse(s.Replace('.', ',')) * 1000;
             if (DeterminateRadioButton?.IsChecked ?? false)
@@ -320,6 +361,18 @@ namespace Views
             if (ExponentialRadioButton?.IsChecked ?? false)
                 return new ExponentialGenerator(parser(ExponentialParameter1.Text) / (1000 * 1000));
             return null;
+        }
+
+        private void HyperlinkButton_Click(object sender, RoutedEventArgs e)
+        {
+            var uri = new Uri("ms-appx-web:///Views/Assets/help.html");
+            HelpView.Visibility = Visibility.Visible;
+            //Launcher(uri);
+        }
+
+        private void CloseWebViewButton_Click(object sender, RoutedEventArgs e)
+        {
+            HelpView.Visibility = Visibility.Collapsed;
         }
     }
 }

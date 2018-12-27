@@ -110,6 +110,7 @@
     <Compile Include="Generators\DeterminateGenerator.cs" />
     <Compile Include="Generators\ExponentialGenerator.cs" />
     <Compile Include="Generators\ICarGenerator.cs" />
+    <Compile Include="Generators\IncorrectGeneratorParameterException.cs" />
     <Compile Include="Generators\NormalGenerator.cs" />
     <Compile Include="Generators\UniformGenerator.cs" />
     <Compile Include="IncrementerViewModel.cs" />
@@ -119,7 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>6.2.2</Version>
+      <Version>6.1.9</Version>
     </PackageReference>
     <PackageReference Include="Win2D.uwp">
       <Version>1.23.0</Version>

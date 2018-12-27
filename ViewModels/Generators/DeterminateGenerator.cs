@@ -7,19 +7,22 @@ using Domain;
 
 namespace ViewModels.Generators
 {
-    public class DeterminateGenerator : ICarGenerator
+    public class DeterminateGenerator : CarGeneratorBase
     {
+        private const int PERIOD_LEFT_BORDER = 10 * 1000;
+        private const int PERIOD_RIGHT_BORDER = 3600 * 1000;
         private double _step;
 
         public DeterminateGenerator(double period)
         {
+            CheckValue(period, PERIOD_LEFT_BORDER, PERIOD_RIGHT_BORDER, "период");
             Period = period;
             _step = period - 1;
         }
 
         public double Period { get; }
 
-        public List<Car> Generate(int difference)
+        public override List<Car> Generate(int difference)
         {
             _step += difference;
             int count = _step >= Period ? 1 : 0;
