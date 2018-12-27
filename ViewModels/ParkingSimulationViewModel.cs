@@ -298,26 +298,23 @@ namespace ViewModels
                     {
                         if (Cells[i, 1] == CellType.Entry || Cells[i, 1] == CellType.Exit || Cells[i, 1] == CellType.CashBox)
                             continue;
+                        var prev = cells[i, 1];
                         cells[i, 1] = CellType.Entry;
                         if (CheckCorrect(cells, new Coord(i, 1)) && CheckCorrect(cells, exit))
                             _availableCells[i, 1] = true;
-                        cells[i, 1] = CellType.Parking;
+                        cells[i, 1] = prev;
                     }
                     break;
                 case CellType.Exit:
                     cells[exit.X, exit.Y] = CellType.Parking;
+                    cells[cashbox.X, cashbox.Y] = CellType.Parking;
                     for (int i = 1; i < _availableCells.GetLength(0) - 1; i++)
                     {
-                        bool availability = Cells[i - 1, 1] == CellType.Exit || Cells[i - 1, 1] == CellType.Parking || Cells[i - 1, 1] == CellType.CashBox;
-                        availability |= Cells[i + 1, 1] == CellType.Exit || Cells[i + 1, 1] == CellType.Parking || Cells[i + 1, 1] == CellType.CashBox;
                         if (Cells[i, 1] == CellType.Entry 
-                            || Cells[i, 1] == CellType.Exit 
-                            || !availability)
+                            || Cells[i, 1] == CellType.Exit)
                             continue;
-                        cells[i, 1] = CellType.Exit;
-                        if (CheckCorrect(cells, new Coord(i, 1)) && CheckCorrect(cells, entry))
+                        if (CheckCorrectCellForExit(cells, new Coord(i, 1), entry) != 0)
                             _availableCells[i, 1] = true;
-                        cells[i, 1] = CellType.Parking;
                     }
                     break;
                 case CellType.CashBox:
@@ -361,6 +358,31 @@ namespace ViewModels
                 default:
                     break;
             }
+        }
+
+        public int CheckCorrectCellForExit(CellType[,] cells, Coord cell, Coord entry = null)
+        {
+            if (entry == null)
+                entry = GetFirstElement(cells, CellType.Entry);
+            var prev = cells[cell.X, cell.Y];
+            cells[cell.X, cell.Y] = CellType.Exit;
+            int result = 0;
+            if (cells[cell.X - 1, cell.Y] == CellType.Parking)
+            {
+                cells[cell.X - 1, cell.Y] = CellType.CashBox;
+                if (CheckCorrect(cells, cell) && CheckCorrect(cells, entry))
+                    result = -1;
+                cells[cell.X - 1, cell.Y] = CellType.Parking;
+            }
+            if (result != -1 && cells[cell.X + 1, cell.Y] == CellType.Parking)
+            {
+                cells[cell.X + 1, cell.Y] = CellType.CashBox;
+                if (CheckCorrect(cells, cell) && CheckCorrect(cells, entry))
+                    result = 1;
+                cells[cell.X + 1, cell.Y] = CellType.Parking;
+            }
+            cells[cell.X, cell.Y] = prev;
+            return result;
         }
 
         public async void StartSimulation()

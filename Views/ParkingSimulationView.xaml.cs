@@ -246,7 +246,9 @@ namespace Views
                 cells[x2, y2] = _vm.SelectedType;
                 if (_vm.SelectedType == CellType.Exit)
                 {
-                    if (cells[x2 - 1, y2] == CellType.Parking)
+                    var tmpCells = (CellType[,])cells.Clone();
+
+                    if (_vm.CheckCorrectCellForExit(tmpCells, new Coord(x2, y2)) == -1)
                     {
                         cells[x2 - 1, y2] = CellType.CashBox;
                     }
