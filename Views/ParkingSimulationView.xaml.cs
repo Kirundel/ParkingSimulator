@@ -23,6 +23,7 @@ namespace Views
     public sealed partial class ParkingSimulationView : Page
     {
         private readonly Color Filter = Color.FromArgb(255, 155, 0, 0);
+        private readonly Color YellowFilter = Color.FromArgb(255, 155, 255, 0);
         private readonly Uri _carImageUri = new Uri("ms-appx:///Views/Assets/car.png");
         private readonly Uri _entryImageUri = new Uri("ms-appx:///Views/Assets/entry.png");
         private readonly Uri _exitImageUri = new Uri("ms-appx:///Views/Assets/exit.png");
@@ -187,7 +188,16 @@ namespace Views
                     break;
             }
             if (needApplyFilter)
-                resultColor = ApplyFilter(resultColor, Filter);
+            {
+                if (type == CellType.ParkingSpace)
+                {
+                    resultColor = Colors.Orange;
+                }
+                else
+                {
+                    resultColor = ApplyFilter(resultColor, Filter);
+                }
+            }
             drawingSession.FillRectangle(rect, resultColor);
 
             switch(type)
@@ -248,14 +258,7 @@ namespace Views
                 {
                     var tmpCells = (CellType[,])cells.Clone();
 
-                    if (_vm.CheckCorrectCellForExit(tmpCells, new Coord(x2, y2)) == -1)
-                    {
-                        cells[x2 - 1, y2] = CellType.CashBox;
-                    }
-                    else
-                    {
-                        cells[x2 + 1, y2] = CellType.CashBox;
-                    }
+                    cells[x2 + _vm.CheckCorrectCellForExit(tmpCells, new Coord(x2, y2)), y2] = CellType.CashBox;
                 }
                 _vm.IsCellsChanged = true;
                 _vm.RecalculateAvailableCells();
