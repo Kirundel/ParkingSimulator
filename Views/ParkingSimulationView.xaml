@@ -288,7 +288,7 @@
 
                 <ScrollViewer
                     Grid.Column="1"
-                    HorizontalScrollBarVisibility="Disabled"
+                    HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto"
                     Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}">
                     <Grid x:Name="SimulationMenu">

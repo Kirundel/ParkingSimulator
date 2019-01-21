@@ -348,8 +348,8 @@ namespace Views
                 RadioButton_Checked(null, null);
 
                 #region ENABLINGS incrementercontrols
-                DayRateIncrementerControl.IsEnabled = false;
-                NightRateIncrementerControl.IsEnabled = false;
+                DayRateIncrementerControl.IsEnabled = true;
+                NightRateIncrementerControl.IsEnabled = true;
                 #endregion
             }
         }

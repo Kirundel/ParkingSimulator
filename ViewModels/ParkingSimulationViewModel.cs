@@ -25,8 +25,8 @@ namespace ViewModels
     public class ParkingSimulationViewModel : ViewModelBase
     {
         private const double CAR_SPEED = 0.08;
-        private const int MIN_STOP_BORDER = 60 * 1000;
-        private const int MAX_STOP_BORDER = 6 * 3600 * 1000;
+        private const int MIN_STOP_BORDER = 6 * 1000;
+        private const int MAX_STOP_BORDER = 15 * 1000;
 
         private readonly int[] dx = new int[] { 1, -1, 0, 0 };
         private readonly int[] dy = new int[] { 0, 0, 1, -1 };
@@ -38,8 +38,8 @@ namespace ViewModels
             {
                 { CellType.Empty, new HashSet<CellType>() },
                 { CellType.Entry, new HashSet<CellType>{CellType.Exit, CellType.Parking} },
-                { CellType.Exit, new HashSet<CellType>{CellType.Entry, CellType.Road} },
-                { CellType.Parking, new HashSet<CellType>{CellType.Exit, CellType.Parking} },
+                { CellType.Exit, new HashSet<CellType>{CellType.Entry, CellType.Parking, CellType.Road} },
+                { CellType.Parking, new HashSet<CellType>{CellType.Entry, CellType.Exit, CellType.Parking} },
                 { CellType.ParkingSpace, new HashSet<CellType>{CellType.Entry, CellType.Exit, CellType.Parking} },
                 { CellType.Road, new HashSet<CellType>{CellType.Road, CellType.Entry} }
             };
@@ -50,7 +50,7 @@ namespace ViewModels
 
         private int _millisecondsNow = 0;
 
-        private List<(int begin, int duration, int money)> _carsTimes = new List<(int begin, int duration, int money)>();
+        private List<(int begin, long duration, long money)> _carsTimes = new List<(int begin, long duration, long money)>();
         private DateTimeOffset _beginDate = new DateTimeOffset(new DateTime(2019, 1, 1));
         private DateTimeOffset _endDate = new DateTimeOffset(new DateTime(2019, 1, 1));
 
@@ -64,6 +64,7 @@ namespace ViewModels
         private List<Car> _cars = new List<Car>();
         private object _carsLocker = new object();
 
+        private bool _isPaused = false;
         private int _carsOnParking = 0;
         private int _trucksOnParking = 0;
         private int _moneyInCashBox = 0;
@@ -214,13 +215,13 @@ namespace ViewModels
             {
                 var beg = DateTimeToMilliseconds(_beginDate);
                 var end = DateTimeToMilliseconds(_endDate.AddDays(1));
-                List<(int begin, int duration, int money)> arr;
+                List<(int begin, long duration, long money)> arr;
                 lock (_carsTimes)
                 {
                     arr = _carsTimes.Where(x => x.begin >= beg && x.begin + x.duration < end).ToList();
                 }
                 double avg_time = 0.0;
-                int money = 0;
+                long money = 0;
                 if (arr.Count > 0)
                 {
                     avg_time = ((double)arr.Sum(x => x.duration)) / (3600.0 * 1000 * arr.Count());
@@ -387,6 +388,13 @@ namespace ViewModels
 
         public async void StartSimulation()
         {
+            if (_isPaused)
+            {
+                _lastUpdate = DateTime.Now;
+                _timer.Start();
+                _isPaused = false;
+                return;
+            }
             try
             {
                 _parkingspacesNum = CountParkingSpaces();
@@ -410,6 +418,7 @@ namespace ViewModels
         public void PauseSimulation()
         {
             _timer.Stop();
+            _isPaused = true;
         }
 
         public void StopSimulation()
@@ -417,6 +426,7 @@ namespace ViewModels
             _timer.Stop();
             _carsTimes.Clear();
             _cars.Clear();
+            _isPaused = false;
             _lockedCell = new bool[Cells.GetLength(0), Cells.GetLength(1)];
             _carsOnParking = 0;
             _trucksOnParking = 0;
@@ -665,7 +675,7 @@ namespace ViewModels
                 {
                     int newx = top.X + dx[i];
                     int newy = top.Y + dy[i];
-                    if (!InRectangle(newx, newy))
+                    if (!InRectangle(newx, newy, cells))
                         continue;
                     if (!used[newx, newy]
                         && _allowedStep[cells[top.X, top.Y]].Contains(cells[newx, newy]) || cells[newx, newy] == CellType.ParkingSpace)
@@ -729,9 +739,11 @@ namespace ViewModels
             InvalidateView?.Invoke();
         }
 
-        private bool InRectangle(int newx, int newy)
+        private bool InRectangle(int newx, int newy, CellType[,] cells = null)
         {
-            return !(newx < 0 || newx >= Cells.GetLength(0) || newy < 0 || newy >= Cells.GetLength(1));
+            if (cells == null)
+                cells = Cells;
+            return !(newx < 0 || newx >= cells.GetLength(0) || newy < 0 || newy >= cells.GetLength(1));
         }
 
         private async Task<bool> OnSizeChanged()
@@ -751,7 +763,7 @@ namespace ViewModels
             RegenerateCells();
             return true;
         }
-
+        
         private void RegenerateCells(bool needGenerateCells = true)
         {
             if (needGenerateCells)
