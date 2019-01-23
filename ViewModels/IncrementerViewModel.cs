@@ -11,6 +11,7 @@ namespace ViewModels
     {
         private int _value;
         private Func<Task<bool>> _valueChanged;
+        private bool _awaitingNow = false;
 
         public IncrementerControlViewModel(string text, int value, int minValue, int maxValue, Func<Task<bool>> valueChanged, int step = 1)
         {
@@ -45,8 +46,12 @@ namespace ViewModels
         {
             var prevValue = _value;
             Value = value;
+            if (_awaitingNow)
+                return;
+            _awaitingNow = true;
             if (!await _valueChanged())
                 Value = prevValue;
+            _awaitingNow = false;
         }
     }
 }

@@ -53,6 +53,8 @@ namespace Domain
 
         public Coord Exit { get; set; }
 
+        public bool CarOnParking { get; private set; } = false;
+
         public void GenerateWay(Queue<Coord> way)
         {
             Way = way;
@@ -89,9 +91,13 @@ namespace Domain
                         {
                             AllStep = 0;
                             EntryReached?.Invoke(this);
+                            CarOnParking = true;
                         }
                         if (prev == Exit && now.Y == 0)
+                        {
                             ExitReached?.Invoke(this);
+                            CarOnParking = false;
+                        }
                     }
                 }
             }

@@ -157,6 +157,7 @@
     <Content Include="Assets\car.png" />
     <Content Include="Assets\cashbox.png" />
     <Content Include="Assets\help.html" />
+    <Content Include="Assets\parking.png" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

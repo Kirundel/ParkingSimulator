@@ -25,8 +25,8 @@ namespace ViewModels
     public class ParkingSimulationViewModel : ViewModelBase
     {
         private const double CAR_SPEED = 0.08;
-        private const int MIN_STOP_BORDER = 6 * 1000;
-        private const int MAX_STOP_BORDER = 15 * 1000;
+        private const int MIN_STOP_BORDER = 200 * 1000;
+        private const int MAX_STOP_BORDER = 1500 * 1000;
 
         private readonly int[] dx = new int[] { 1, -1, 0, 0 };
         private readonly int[] dy = new int[] { 0, 0, 1, -1 };
@@ -438,6 +438,40 @@ namespace ViewModels
             RefreshSimulationMenuEnabling?.Invoke(false);
         }
 
+        public async Task OnCarClick(Car car)
+        {
+            bool needStart = _timer.IsEnabled;
+            if (needStart)
+            {
+                PauseSimulation();
+            }
+            var text = "";
+            var time = car.AllStep / (3600.0 * 1000);
+            int rate = (_millisecondsNow % DAY_IN_MILLISECONDS < DAY_IN_MILLISECONDS / 2)
+                            ? DayRateIncrementerViewModel.Value
+                            : NightRateIncrementerViewModel.Value;
+            var addedMoney = (int)Ceiling(time * rate);
+            text += car.IsTruck ? "Машина - грузовик. " : "Машина - легковая. ";
+            text += "\n";
+            text += !car.CarOnParking
+                ? "Машина не на парковке" 
+                : ("Машина на парковке уже " + time.ToString("0.000") + "ч");
+            if (car.CarOnParking)
+            {
+                text += "\n";
+                text += "Количество денег, которые отдаст владелец должен отдать владелец машины - " + addedMoney + " руб."; 
+            }
+            var md = new MessageDialog(text);
+            var yesCommand = new UICommand("Продолжить");
+            md.Options = MessageDialogOptions.None;
+            md.Commands.Add(yesCommand);
+            var result = await md.ShowAsync();
+            if (needStart)
+            {
+                StartSimulation();
+            }
+        }
+
         private int CountParkingSpaces()
         {
             int answer = 0;
@@ -579,7 +613,7 @@ namespace ViewModels
                     int newx = top.X + dx[i];
                     int newy = top.Y + dy[i];
 
-                    if (newx == to.X && newy == to.Y)
+                    if (newx == to.X && newy == to.Y && (top.Y != 0 || newy != 1))
                     {
                         result = way;
                         f = true;
@@ -750,7 +784,7 @@ namespace ViewModels
         {
             if (IsCellsChanged)
             {
-                var md = new MessageDialog("При изменении размера вся топология сбросится. Вы уверены, что хотите продолжить?");
+                var md = new MessageDialog("При изменении размера вся топология будет удалена. Вы уверены, что хотите продолжить?");
                 var yesCommand = new UICommand("Да");
                 var noCommand = new UICommand("Нет");
                 md.Options = MessageDialogOptions.None;

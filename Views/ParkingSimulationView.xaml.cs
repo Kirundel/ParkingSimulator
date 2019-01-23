@@ -28,7 +28,7 @@ namespace Views
         private readonly Uri _entryImageUri = new Uri("ms-appx:///Views/Assets/entry.png");
         private readonly Uri _exitImageUri = new Uri("ms-appx:///Views/Assets/exit.png");
         private readonly Uri _cashboxImageUri = new Uri("ms-appx:///Views/Assets/cashbox.png");
-
+        private readonly Uri _parkingImageUri = new Uri("ms-appx:///Views/Assets/parking.png");
 
         private bool _canDraw = true;
 
@@ -36,6 +36,9 @@ namespace Views
         private CanvasBitmap _entryImage;
         private CanvasBitmap _exitImage;
         private CanvasBitmap _cashboxImage;
+        private CanvasBitmap _parkingImage;
+
+        private List<(Vector2, Car)> _carsCoordinates = new List<(Vector2, Car)>(); 
 
         private object _locker = new object();
 
@@ -83,6 +86,7 @@ namespace Views
                 _entryImage = await CanvasBitmap.LoadAsync(sender.Device, _entryImageUri);
                 _exitImage = await CanvasBitmap.LoadAsync(sender.Device, _exitImageUri);
                 _cashboxImage = await CanvasBitmap.LoadAsync(sender.Device, _cashboxImageUri);
+                _parkingImage = await CanvasBitmap.LoadAsync(sender.Device, _parkingImageUri);
                 _canDraw = true;
                 sender.Invalidate();
                 return;
@@ -97,6 +101,7 @@ namespace Views
                     return;
 
                 drawingSession?.Clear(Colors.White);
+                _carsCoordinates.Clear();
 
                 var width = sender.ActualWidth;
                 var height = sender.ActualHeight;
@@ -155,11 +160,13 @@ namespace Views
                             Source = tr2def,
                             TransformMatrix = Matrix3x2.CreateScale((float)(carWidth / sizeconst))
                         };
+                        var shiftVector = new Vector2(
+                                (float)(scalex * (x + shifts.x) + shiftx),
+                                (float)(scaley * (y + shifts.y) + shifty));
                         drawingSession.DrawImage(
                             tr2deft,
-                            new Vector2(
-                                (float)(scalex * (x + shifts.x) + shiftx),
-                                (float)(scaley * (y + shifts.y) + shifty)));
+                            shiftVector);
+                        _carsCoordinates.Add((shiftVector, car));
                         /*drawingSession.FillEllipse(
                             new Vector2((float)(scalex * (x + shifts.x) + shiftx), (float)(scaley * (y + shifts.y) + shifty)),
                             7, 7, car.CarColor);*/
@@ -178,8 +185,6 @@ namespace Views
                     resultColor = Colors.LightGray;
                     break;
                 case CellType.ParkingSpace:
-                    resultColor = Colors.Yellow;
-                    break;
                 case CellType.Parking:
                 case CellType.Entry:
                 case CellType.Exit:
@@ -189,14 +194,7 @@ namespace Views
             }
             if (needApplyFilter)
             {
-                if (type == CellType.ParkingSpace)
-                {
-                    resultColor = Colors.Orange;
-                }
-                else
-                {
-                    resultColor = ApplyFilter(resultColor, Filter);
-                }
+                resultColor = ApplyFilter(resultColor, Filter);
             }
             drawingSession.FillRectangle(rect, resultColor);
 
@@ -211,15 +209,21 @@ namespace Views
                 case CellType.CashBox:
                     drawingSession.DrawImage(_cashboxImage, rect);
                     break;
+                case CellType.ParkingSpace:
+                    drawingSession.DrawImage(_parkingImage, rect);
+                    break;
             }
         }
 
         private void CanvasControl_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            if (!_vm.IsConstructorState)
+            if (_vm.IsHelpState)
                 return;
 
             var canv = sender as CanvasControl;
+            var coord = e.GetCurrentPoint(canv);
+
+
             var width = canv.ActualWidth;
             var height = canv.ActualHeight;
             var cells = _vm.Cells;
@@ -229,10 +233,26 @@ namespace Views
             scalex = Min(scalex, scaley);
             scaley = scalex;
 
+            if (_vm.IsSimulationState)
+            {
+                foreach (var (vector, car) in _carsCoordinates)
+                {
+                    var sizeconst = car.IsTruck ? 1 : 2;
+                    var sizewidth = (0.5 * 0.9 * scalex) / sizeconst;
+                    var sizeheight = (0.5 * 0.9 * scaley) / sizeconst;
+                    if (Abs(vector.X  - coord.Position.X) < sizewidth 
+                        && Abs(vector.Y - coord.Position.Y) < sizeheight)
+                    {
+                        //_vm.OnCarClick(car).GetAwaiter().GetResult();
+                        _vm.OnCarClick(car);
+                        break;
+                    }
+                }
+                return;
+            }
+
             var shiftx = (width - scalex * cells.GetLength(0)) / 2;
             var shifty = (height - scaley * cells.GetLength(1)) / 2;
-
-            var coord = e.GetCurrentPoint(canv);
 
             var x1 = coord.Position.X - shiftx;
             var y1 = coord.Position.Y - shifty;
