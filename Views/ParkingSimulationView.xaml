@@ -148,10 +148,26 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock
+                    <Grid
                         Grid.Row="0"
-                        Text="{Binding StatisticsHeader}"
-                        Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}" />
+                        HorizontalAlignment="Stretch"
+                        Visibility="{Binding IsSimulationState, Converter={StaticResource BoolToVisiblityConverter}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Grid.Row="1"
+                            HorizontalAlignment="Stretch"
+                            Text="{Binding StatisticsHeader}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Grid.Row="0"
+                            HorizontalAlignment="Center"
+                            FontSize="26"
+                            Text="{Binding TimeNow}"
+                            TextAlignment="Right" />
+                    </Grid>
                     <canvas:CanvasControl
                         x:Name="mainDisplay"
                         Grid.Row="1"
@@ -478,16 +494,21 @@
                 <RowDefinition Height="44" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Button
-                Padding="15,0"
-                HorizontalAlignment="Left"
-                Background="White"
+            <Grid
+                HorizontalAlignment="Stretch"
                 BorderBrush="Black"
-                BorderThickness="1"
-                Click="CloseWebViewButton_Click"
-                Style="{StaticResource DefaultButton}">
-                Закрыть справку
-            </Button>
+                BorderThickness="0,0,0,1">
+                <Button
+                    Padding="15,0"
+                    HorizontalAlignment="Left"
+                    Background="White"
+                    BorderBrush="Black"
+                    BorderThickness="1,1,1,0"
+                    Click="CloseWebViewButton_Click"
+                    Style="{StaticResource DefaultButton}">
+                    Закрыть справку
+                </Button>
+            </Grid>
             <WebView
                 Grid.Row="1"
                 HorizontalAlignment="Stretch"

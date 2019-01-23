@@ -152,12 +152,28 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\1.PNG" />
+    <Content Include="Assets\10.PNG" />
+    <Content Include="Assets\11.PNG" />
+    <Content Include="Assets\2.PNG" />
+    <Content Include="Assets\3.PNG" />
+    <Content Include="Assets\4.PNG" />
+    <Content Include="Assets\5.PNG" />
+    <Content Include="Assets\6.PNG" />
+    <Content Include="Assets\7.PNG" />
+    <Content Include="Assets\8.PNG" />
+    <Content Include="Assets\9.PNG" />
+    <Content Include="Assets\constructor.html" />
     <Content Include="Assets\exit.png" />
     <Content Include="Assets\entry.png" />
     <Content Include="Assets\car.png" />
     <Content Include="Assets\cashbox.png" />
     <Content Include="Assets\help.html" />
+    <Content Include="Assets\index.html" />
     <Content Include="Assets\parking.png" />
+    <Content Include="Assets\style.css" />
+    <Content Include="Assets\use.html" />
+    <Content Include="Assets\visualizator.html" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

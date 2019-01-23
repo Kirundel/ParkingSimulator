@@ -44,10 +44,10 @@ namespace ViewModels
 
         private async void SetValue(int value)
         {
-            var prevValue = _value;
-            Value = value;
             if (_awaitingNow)
                 return;
+            var prevValue = _value;
+            Value = value;
             _awaitingNow = true;
             if (!await _valueChanged())
                 Value = prevValue;

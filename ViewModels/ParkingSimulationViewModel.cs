@@ -31,7 +31,8 @@ namespace ViewModels
         private readonly int[] dx = new int[] { 1, -1, 0, 0 };
         private readonly int[] dy = new int[] { 0, 0, 1, -1 };
         private readonly DateTimeOffset BEGIN_TICK = new DateTimeOffset(new DateTime(2019, 1, 1));
-        private readonly long DAY_IN_MILLISECONDS = (int)(new DateTime(2019, 1, 2) - new DateTime(2019, 1, 1)).TotalMilliseconds; 
+        private readonly long DAY_IN_MILLISECONDS = (int)(new DateTime(2019, 1, 2) - new DateTime(2019, 1, 1)).TotalMilliseconds;
+        private readonly long DAY_SHIFT;
 
         private Dictionary<CellType, HashSet<CellType>> _allowedStep =
             new Dictionary<CellType, HashSet<CellType>>
@@ -72,6 +73,7 @@ namespace ViewModels
 
         public ParkingSimulationViewModel()
         {
+            DAY_SHIFT = DAY_IN_MILLISECONDS / 3;
             _parkingSimulationModel = IoC.GetModel<ParkingSimulationModel>();
             _parkingSimulationModel.CheckCorrectField += CheckCorrectField;
 
@@ -231,6 +233,8 @@ namespace ViewModels
             }
         }
 
+        public string TimeNow => MillisecondsToDateTime(_millisecondsNow);
+
         //public string StatisticsHeader => $"Количество легковых автомобилей: {_carsOnParking}\nКоличество грузовых автомобилей: {_trucksOnParking}\nКоличество свободных мест: {_parkingspacesNum}\nВ кассе: 0 руб.";
 
 
@@ -332,10 +336,18 @@ namespace ViewModels
                     break;
                 case CellType.Parking:
                     {
+                        for (int i = 0; i < _availableCells.GetLength(0); i++)
+                        {
+                            for (int j = 0; j < _availableCells.GetLength(1); j++)
+                            {
+                                _availableCells[i, j] = Cells[i, j] == CellType.ParkingSpace;
+                            }
+                        }
+                        /*
                         SetAllCellsAvailable(true);
                         _availableCells[entry.X, entry.Y] = false;
                         _availableCells[exit.X, exit.Y] = false;
-                        _availableCells[cashbox.X, cashbox.Y] = false;
+                        _availableCells[cashbox.X, cashbox.Y] = false;*/
                     }
                     break;
                 case CellType.ParkingSpace:
@@ -388,6 +400,11 @@ namespace ViewModels
 
         public async void StartSimulation()
         {
+            if (GetFirstElement(Cells, CellType.ParkingSpace).X == -1)
+            {
+                await ShowMessage("Невозможно запустить симуляцию при отсутствии парковочных мест");
+                return;
+            }
             if (_isPaused)
             {
                 _lastUpdate = DateTime.Now;
@@ -432,6 +449,8 @@ namespace ViewModels
             _trucksOnParking = 0;
             _moneyInCashBox = 0;
             _parkingspacesNum = 0;
+            _millisecondsNow = 0;
+            NotifyOfPropertyChanged(nameof(TimeNow));
             NotifyOfPropertyChanged(nameof(StatisticsHeader));
             NotifyOfPropertyChanged(nameof(StatisticsHeader2));
             InvalidateView?.Invoke();
@@ -447,9 +466,12 @@ namespace ViewModels
             }
             var text = "";
             var time = car.AllStep / (3600.0 * 1000);
-            int rate = (_millisecondsNow % DAY_IN_MILLISECONDS < DAY_IN_MILLISECONDS / 2)
+
+
+            int rate = ((_millisecondsNow + DAY_SHIFT) % DAY_IN_MILLISECONDS < DAY_IN_MILLISECONDS / 2)
                             ? DayRateIncrementerViewModel.Value
                             : NightRateIncrementerViewModel.Value;
+
             var addedMoney = (int)Ceiling(time * rate);
             text += car.IsTruck ? "Машина - грузовик. " : "Машина - легковая. ";
             text += "\n";
@@ -493,6 +515,7 @@ namespace ViewModels
             difference *= TimeAcceleration;
 
             _millisecondsNow += difference;
+            NotifyOfPropertyChanged(nameof(TimeNow));
 
             foreach (var car in _cars)
             {
@@ -699,6 +722,7 @@ namespace ViewModels
             bool[,] used = new bool[cells.GetLength(0), cells.GetLength(1)];
             used[begin.X, begin.Y] = true;
             Queue<Coord> q = new Queue<Coord>();
+            SortedSet<CellType> correctMoving = new SortedSet<CellType>(new CellType[] { CellType.Parking, CellType.Entry, CellType.Exit });
             q.Enqueue(begin);
             while (q.Count > 0)
             {
@@ -712,7 +736,8 @@ namespace ViewModels
                     if (!InRectangle(newx, newy, cells))
                         continue;
                     if (!used[newx, newy]
-                        && _allowedStep[cells[top.X, top.Y]].Contains(cells[newx, newy]) || cells[newx, newy] == CellType.ParkingSpace)
+                        && (_allowedStep[cells[top.X, top.Y]].Contains(cells[newx, newy]) || 
+                        (correctMoving.Contains(cells[top.X, top.Y]) && cells[newx, newy] == CellType.ParkingSpace)))
                     {
                         used[newx, newy] = true;
                         q.Enqueue(new Coord(newx, newy));
@@ -831,7 +856,7 @@ namespace ViewModels
             else
                 _carsOnParking--;
 
-            int rate = (_millisecondsNow % DAY_IN_MILLISECONDS < DAY_IN_MILLISECONDS / 2)
+            int rate = ((_millisecondsNow + DAY_SHIFT)% DAY_IN_MILLISECONDS < DAY_IN_MILLISECONDS / 2)
                             ? DayRateIncrementerViewModel.Value
                             : NightRateIncrementerViewModel.Value;
 
@@ -854,6 +879,23 @@ namespace ViewModels
         private DateTimeOffset GenerateNullDateTimeOffset(DateTimeOffset dt)
         {
             return new DateTimeOffset(dt.Date);
+        }
+
+        private string MillisecondsToDateTime(long time)
+        {
+            var hour = (time / (3600 * 1000)) % 24;
+            var minute = (time / (60 * 1000)) % 60;
+            var second = (time / 1000) % 60;
+            var hs = hour.ToString();
+            var ms = minute.ToString();
+            var ss = second.ToString();
+            if (hs.Length == 1)
+                hs = "0" + hs;
+            if (ms.Length == 1)
+                ms = "0" + ms;
+            if (ss.Length == 1)
+                ss = "0" + ss;
+            return hs + ":" + ms + ":" + ss;
         }
 
         private bool CheckCorrectField(CellType[,] cells)
@@ -892,6 +934,7 @@ namespace ViewModels
                     WidthIncrementerViewModel.Value = _parkingSimulationModel.Width;
                     HeightIncrementerViewModel.Value = _parkingSimulationModel.Height;
                     RegenerateCells(false);
+                    IsCellsChanged = true;
                 }
                 else
                 {
